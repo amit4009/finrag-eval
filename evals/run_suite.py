@@ -149,6 +149,12 @@ def run_suite(label="", quiet=False, full=False):
 
     elapsed = time.perf_counter() - t_start
 
+    # judge calls that failed outright (see harness.JUDGE_ERRORS): count them
+    # BEFORE trimming, since n_errors is an info metric
+    judge_errors = int(sum(v for mid, v in metrics.items() if mid.endswith(".n_errors")))
+    if judge_errors:
+        print(f"\nWARNING: {judge_errors} judge call(s) failed and were left out of the averages")
+
     # Trim to what matters unless --full: drop 'info' metrics (avg/min/max/n,
     # secondary latency/cost) and keep gates + guardrails. ~88 metrics -> ~22.
     if not full:
@@ -158,6 +164,7 @@ def run_suite(label="", quiet=False, full=False):
     snapshot = {
         "metadata": {
             **build_metadata(label),
+            "judge_errors": judge_errors,
             "suite_seconds": round(elapsed, 1),
             "full": full,
             "n_metrics": len(metrics),

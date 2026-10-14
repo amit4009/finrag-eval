@@ -23,7 +23,7 @@ flag, so it stays correct whether higher or lower score is "good".
 
 import json
 
-from deepeval.evaluate import AsyncConfig, CacheConfig
+from deepeval.evaluate import AsyncConfig, CacheConfig, ErrorConfig
 
 FINANCEBENCH_GOLDENS = "goldens/financebench.json"
 
@@ -36,6 +36,16 @@ NO_CACHE = CacheConfig(write_cache=False, use_cache=False)
 # with whole 10-K excerpts. At Phase 2 size that queues requests at the API until
 # they time out. 5 at a time is slower but finishes.
 JUDGE_ASYNC = AsyncConfig(max_concurrent=5)
+
+# A judge call can fail outright: gpt-4o-mini occasionally loops until it hits
+# the 16k output-token limit on a structured judging step, and retrying
+# reproduces it. Record that as an error on the one metric instead of failing
+# the whole run. summarize_by_metric keeps errored scores out of the averages
+# and counts them as n_errors, and run_suite stamps the total into the snapshot.
+JUDGE_ERRORS = ErrorConfig(ignore_errors=True)
+
+# everything every evaluate() call in the suite shares
+JUDGE_RUN = {"cache_config": NO_CACHE, "async_config": JUDGE_ASYNC, "error_config": JUDGE_ERRORS}
 
 
 def load_goldens(path):
@@ -74,12 +84,15 @@ def summarize_by_metric(result):
     if test_results is None:
         test_results = result if isinstance(result, list) else []
 
-    buckets = {}   # metric_name -> {"scores": [...], "passed": int, "total": int}
+    buckets = {}   # metric_name -> {"scores": [...], "passed": int, "total": int, "errors": int}
     for tr in test_results:
         metrics = getattr(tr, "metrics_data", None) or getattr(tr, "metrics", None) or []
         for m in metrics:
             name = getattr(m, "name", "unknown")
-            b = buckets.setdefault(name, {"scores": [], "passed": 0, "total": 0})
+            b = buckets.setdefault(name, {"scores": [], "passed": 0, "total": 0, "errors": 0})
+            if getattr(m, "error", None):      # judge call failed: not a score of 0
+                b["errors"] += 1
+                continue
             b["total"] += 1
             score = getattr(m, "score", None)
             if score is not None:
@@ -96,6 +109,7 @@ def summarize_by_metric(result):
             "avg_score": (sum(scores) / len(scores)) if scores else float("nan"),
             "min_score": min(scores) if scores else float("nan"),
             "max_score": max(scores) if scores else float("nan"),
+            "n_errors": b["errors"],
         }
     return summary
 

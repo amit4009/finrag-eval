@@ -18,8 +18,7 @@ from deepeval.metrics.g_eval import Rubric
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 
 from evals.harness import (
-    JUDGE_ASYNC,
-    NO_CACHE,
+    JUDGE_RUN,
     load_phase_goldens,
     print_summary,
     summarize_by_metric,
@@ -70,7 +69,7 @@ def run(rag):
         if g["numeric"]:
             numeric.append(float(numeric_match(result["answer"], g["ideal_answer"], g["question"])))
 
-    result = evaluate(cache_config=NO_CACHE, async_config=JUDGE_ASYNC, test_cases=test_cases, metrics=[correctness_metric()])
+    result = evaluate(**JUDGE_RUN, test_cases=test_cases, metrics=[correctness_metric()])
 
     summary = summarize_by_metric(result)
     summary.update(summarize_scores("numeric_match", numeric, 1.0))

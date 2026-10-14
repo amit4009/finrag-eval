@@ -30,8 +30,7 @@ from deepeval.metrics import ContextualRecallMetric
 from deepeval.test_case import LLMTestCase
 
 from evals.harness import (
-    JUDGE_ASYNC,
-    NO_CACHE,
+    JUDGE_RUN,
     load_phase_goldens,
     print_summary,
     summarize_by_metric,
@@ -93,7 +92,7 @@ def run(retriever):
         ))
 
     result = evaluate(
-        cache_config=NO_CACHE, async_config=JUDGE_ASYNC,
+        **JUDGE_RUN,
         test_cases=test_cases,
         metrics=[ContextualRecallMetric(threshold=THRESHOLD, model=config.JUDGE_MODEL,
                                         include_reason=True)],
