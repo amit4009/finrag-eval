@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # which corpus (config/corpus.yaml) to index and which questions to score
-PHASE = os.getenv("FINRAG_PHASE", "phase2")
+PHASE = os.getenv("FINRAG_PHASE", "phase3")
 SPLIT = os.getenv("FINRAG_SPLIT", "dev")      # "dev", "test" or "all"
 
 # ingestion
