@@ -23,7 +23,14 @@ flag, so it stays correct whether higher or lower score is "good".
 
 import json
 
+from deepeval.evaluate import CacheConfig
+
 FINANCEBENCH_GOLDENS = "goldens/financebench.json"
+
+
+# Don't write DeepEval's test-run cache: it crashes on a second run in this
+# version, and every snapshot should be a fresh measurement anyway.
+NO_CACHE = CacheConfig(write_cache=False, use_cache=False)
 
 
 def load_goldens(path):

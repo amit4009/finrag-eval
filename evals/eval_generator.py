@@ -21,6 +21,7 @@ from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric
 from deepeval.test_case import LLMTestCase
 
 from evals.harness import (
+    NO_CACHE,
     load_phase_goldens,
     print_summary,
     summarize_by_metric,
@@ -48,7 +49,7 @@ def run():
         if g["numeric"]:
             numeric.append(float(numeric_match(answer, g["ideal_answer"], g["question"])))
 
-    result = evaluate(test_cases=test_cases, metrics=[
+    result = evaluate(cache_config=NO_CACHE, test_cases=test_cases, metrics=[
         FaithfulnessMetric(threshold=THRESHOLD, model=config.JUDGE_MODEL, include_reason=True),
         AnswerRelevancyMetric(threshold=THRESHOLD, model=config.JUDGE_MODEL, include_reason=True),
     ])

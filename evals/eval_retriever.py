@@ -24,6 +24,7 @@ from deepeval.metrics import ContextualRecallMetric
 from deepeval.test_case import LLMTestCase
 
 from evals.harness import (
+    NO_CACHE,
     load_phase_goldens,
     print_summary,
     summarize_by_metric,
@@ -70,7 +71,7 @@ def run(retriever):
             actual_output="(generator not evaluated in this run)",
         ))
 
-    result = evaluate(
+    result = evaluate(cache_config=NO_CACHE,
         test_cases=test_cases,
         metrics=[ContextualRecallMetric(threshold=THRESHOLD, model=config.JUDGE_MODEL,
                                         include_reason=True)],

@@ -18,7 +18,12 @@ from deepeval.metrics import (
 )
 from deepeval.test_case import LLMTestCase
 
-from evals.harness import load_phase_goldens, print_summary, summarize_by_metric
+from evals.harness import (
+    NO_CACHE,
+    load_phase_goldens,
+    print_summary,
+    summarize_by_metric,
+)
 from src import config
 from src.rag_pipeline import RagPipeline
 
@@ -38,7 +43,7 @@ def run(rag):
         ))
 
     judge = config.JUDGE_MODEL
-    result = evaluate(test_cases=test_cases, metrics=[
+    result = evaluate(cache_config=NO_CACHE, test_cases=test_cases, metrics=[
         ContextualRelevancyMetric(threshold=THRESHOLD, model=judge, include_reason=True),
         FaithfulnessMetric(threshold=THRESHOLD, model=judge, include_reason=True),
         AnswerRelevancyMetric(threshold=THRESHOLD, model=judge, include_reason=True),
