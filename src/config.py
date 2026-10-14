@@ -27,7 +27,7 @@ CHUNK_OVERLAP = 150
 EMBEDDING_MODEL = "text-embedding-3-large"
 
 # retrieval
-RETRIEVER = "vector"          # "vector" (naive baseline) | "filtered" (E1: company + year filters)
+RETRIEVER = "filtered"         # "vector" (naive baseline) | "filtered" (E1: company + year filters)
 TOP_K = 5
 
 # generation + judging (one judge model everywhere, unlike the tutorial)
