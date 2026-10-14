@@ -1,0 +1,107 @@
+{
+  "parser": "rows",
+  "chunking": "page",
+  "top_k": 5,
+  "results": [
+    {
+      "questions": "PepsiCo dev",
+      "companies": 1,
+      "pages": 4228,
+      "retriever": "filters off",
+      "n": 8,
+      "hit_at_5": 0.5,
+      "mrr": 0.28125,
+      "doc_hit_at_5": 0.5
+    },
+    {
+      "questions": "PepsiCo dev",
+      "companies": 1,
+      "pages": 4228,
+      "retriever": "filters on",
+      "n": 8,
+      "hit_at_5": 0.875,
+      "mrr": 0.5729166666666666,
+      "doc_hit_at_5": 1.0
+    },
+    {
+      "questions": "PepsiCo dev",
+      "companies": 8,
+      "pages": 12762,
+      "retriever": "filters off",
+      "n": 8,
+      "hit_at_5": 0.5,
+      "mrr": 0.28125,
+      "doc_hit_at_5": 0.5
+    },
+    {
+      "questions": "PepsiCo dev",
+      "companies": 8,
+      "pages": 12762,
+      "retriever": "filters on",
+      "n": 8,
+      "hit_at_5": 0.875,
+      "mrr": 0.5729166666666666,
+      "doc_hit_at_5": 1.0
+    },
+    {
+      "questions": "Phase 2 dev",
+      "companies": 8,
+      "pages": 12762,
+      "retriever": "filters off",
+      "n": 47,
+      "hit_at_5": 0.2765957446808511,
+      "mrr": 0.18794326241134754,
+      "doc_hit_at_5": 0.574468085106383
+    },
+    {
+      "questions": "Phase 2 dev",
+      "companies": 8,
+      "pages": 12762,
+      "retriever": "filters on",
+      "n": 47,
+      "hit_at_5": 0.5531914893617021,
+      "mrr": 0.36737588652482267,
+      "doc_hit_at_5": 0.9361702127659575
+    },
+    {
+      "questions": "PepsiCo dev",
+      "companies": 40,
+      "pages": 53588,
+      "retriever": "filters off",
+      "n": 8,
+      "hit_at_5": 0.5,
+      "mrr": 0.28125,
+      "doc_hit_at_5": 0.5
+    },
+    {
+      "questions": "PepsiCo dev",
+      "companies": 40,
+      "pages": 53588,
+      "retriever": "filters on",
+      "n": 8,
+      "hit_at_5": 0.875,
+      "mrr": 0.5729166666666666,
+      "doc_hit_at_5": 1.0
+    },
+    {
+      "questions": "Phase 2 dev",
+      "companies": 40,
+      "pages": 53588,
+      "retriever": "filters off",
+      "n": 47,
+      "hit_at_5": 0.2765957446808511,
+      "mrr": 0.18794326241134754,
+      "doc_hit_at_5": 0.574468085106383
+    },
+    {
+      "questions": "Phase 2 dev",
+      "companies": 40,
+      "pages": 53588,
+      "retriever": "filters on",
+      "n": 47,
+      "hit_at_5": 0.5531914893617021,
+      "mrr": 0.36737588652482267,
+      "doc_hit_at_5": 0.9361702127659575
+    }
+  ]
+}

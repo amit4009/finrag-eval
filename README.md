@@ -99,8 +99,11 @@ scored on dev only. The test set is run once, at the end of Phase 3.
 
 Snapshots: [`phase2_naive.json`](baselines/phase2_naive.json), [`e1_metadata_filters.json`](baselines/e1_metadata_filters.json). E1 is now [`baseline.json`](baselines/baseline.json), the reference for E2.
 
-**Corpus growth:** going from 1 company to 8, naive hit@5 fell from 0.55 to 0.28. With 8
-companies there are 6x more look-alike filings to confuse the right one with.
+~~**Corpus growth:** going from 1 company to 8, naive hit@5 fell from 0.55 to 0.28. With 8
+companies there are 6x more look-alike filings to confuse the right one with.~~
+**Correction (Phase 3):** this compared *different question sets* (PepsiCo's 11 vs 8 companies'
+47) under different setups, so it was confounded. With the questions held fixed, adding companies
+changes nothing; see [corpus growth](#corpus-growth-the-hard-distractor-is-the-same-company-in-other-years).
 
 **E1** ([`src/query_filters.py`](src/query_filters.py)) reads the company and the fiscal years
 off the question with plain rules, then filters the vector search to that company and the
@@ -330,12 +333,41 @@ question tagged with a wrong company.
 Snapshots: [`baseline.json`](baselines/baseline.json), [`phase3_noise_rerun.json`](baselines/phase3_noise_rerun.json)
 (the Phase 2 E5 baseline is kept as [`phase2_e5_baseline.json`](baselines/phase2_e5_baseline.json)).
 
-- **Corpus growth costs nothing with filters on.** The 47 Phase 2 questions score identically
-  against 53,588 pages from 40 companies and against 12,762 pages from 8 (hit@5 0.553, MRR 0.367,
-  doc hit 0.936, to three decimals). The company filter puts every question back into its own
-  company's filings.
+- **Corpus growth costs nothing.** The 47 Phase 2 questions score identically against 53,588
+  pages from 40 companies and against 12,762 pages from 8 (hit@5 0.553, MRR 0.367, doc hit 0.936,
+  to three decimals). This first said the *company filter* was the reason; the corpus-growth
+  measurement below shows growth costs nothing **even without filters**.
 - **Numeric answers are within 2 of the generator's ceiling** (28/35 vs 30/35 on gold pages).
   Phase 1's gap between the pipeline and the generator is nearly closed at five times the sample
   size.
 - **The tolerances passed an independent test.** An identical rerun on 105 questions, data the
   tolerances were *not* fitted to, compares PASS. Retrieval metrics again moved by exactly 0.
+
+### Corpus growth: the hard distractor is the same company in other years
+
+[`evals/corpus_growth.py`](evals/corpus_growth.py) → [`corpus_growth.json`](baselines/corpus_growth.json).
+The questions are held fixed while the corpus grows, so only the added filings can change the
+result. Current parsing and chunking; retrieval metrics only.
+
+| Questions | Corpus | Filters off: hit@5 / doc hit | Filters on: hit@5 / doc hit |
+|---|---|---|---|
+| PepsiCo dev (8) | 1 company, 4,228 pages | 0.500 / 0.500 | 0.875 / 1.000 |
+| PepsiCo dev (8) | 8 companies, 12,762 pages | 0.500 / 0.500 | 0.875 / 1.000 |
+| PepsiCo dev (8) | 40 companies, 53,588 pages | 0.500 / 0.500 | 0.875 / 1.000 |
+| Phase 2 dev (47) | 8 companies | 0.277 / 0.574 | 0.553 / 0.936 |
+| Phase 2 dev (47) | 40 companies | 0.277 / 0.574 | 0.553 / 0.936 |
+
+**A 12x larger corpus changes nothing, with or without filters.** This overturns the assumption
+behind the plan's "corpus-growth chart", and two earlier README claims (corrected above). Where do
+unfiltered top-5 results come from, across all 105 dev questions on 40 companies (525 pages)?
+
+| Source of a retrieved page | Share |
+|---|---|
+| a different company | 8.4% |
+| **the right company, a different fiscal year** | **61.9%** |
+| the right company and year | 29.7% |
+
+Questions name their company, and embeddings pick that up. The distractors that actually compete
+are **the same company's other filings**: years of near-identical 10-Ks, plus its 10-Qs and
+earnings releases. So E1's value comes from its **year** filter, not its company filter, and the
+right way to stress this system is more years per company, not more companies.
