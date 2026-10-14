@@ -371,3 +371,41 @@ Questions name their company, and embeddings pick that up. The distractors that 
 are **the same company's other filings**: years of near-identical 10-Ks, plus its 10-Qs and
 earnings releases. So E1's value comes from its **year** filter, not its company filter, and the
 right way to stress this system is more years per company, not more companies.
+
+### Can the LLM judge be trusted? Human labels vs the judge
+
+[`evals/judge_agreement.py`](evals/judge_agreement.py). 50 dev questions, stratified by type
+(17 numeric, 17 domain, 16 novel, 28 companies), answered by the current pipeline and labeled
+correct/incorrect by a human **blind to the judge's scores**. The sheet held only the question, the
+expert answer, FinanceBench's justification and the model's answer. Labels:
+[`judge_labels.csv`](goldens/judge_labels.csv); results: [`judge_agreement.json`](baselines/judge_agreement.json).
+
+| | agreement | Cohen's κ | false passes (judge ✓, human ✗) | false fails (judge ✗, human ✓) |
+|---|---|---|---|---|
+| **GEval correctness** (score ≥ 0.7) | 0.74 | **0.51** | **0** | 13 |
+| **numeric match** (17 numeric questions) | 0.88 | **0.60** | 2 | 0 |
+
+- **The judge is strict, not lenient.** It never accepted an answer the human rejected. Every
+  human-rejected answer scored 0.0, except two at 0.48 and 0.50. All disagreements are correct
+  answers scored below 0.7, and human-correct answers range from 0.40 to 1.0. **So correctness has
+  been *understated*:** the human rates 29/50 answers correct (58%), and the judge passes 16/50
+  (32%). Regression verdicts gate on the *average* score, which still tracks quality, but the
+  absolute numbers are conservative. The threshold was **not** retuned on these 50 labels; that
+  would fit the judge to the very data used to check it.
+- **The numeric matcher's leniency is real.** It accepts a correct number *anywhere* in the answer,
+  which is the risk noted in `evals/numeric.py` since Phase 1. Both of its false passes are
+  answers whose working contains the right number but whose stated answer is wrong.
+- **Labeling found a generator bug:** *the stated answer contradicts the model's own working*.
+
+  | | expert | model's working | model's stated answer |
+  |---|---|---|---|
+  | Kraft Heinz inventory turnover | 6.25 | "16,830 / 2,694 ≈ **6.25**" | **3.06** |
+  | Amazon DPO | 93.86 | "365 × 0.256 = **93.64**" | **36.73** days |
+  | Best Buy 3-yr avg margin | 2.8% | "(3.1 + 2.0 + 3.1) / 3 = **2.73%**" | **3.1%** |
+
+  The prompt says *"Lead with the direct answer in the first sentence"*, so the model commits to a
+  number **before** doing the arithmetic. Calculating first and stating the answer last is the
+  obvious next experiment.
+- **Labeling rule, made consistent:** judge the *stated* answer, the one an analyst reads. One
+  label was changed from Y to N for consistency with two others, and the change is noted in the
+  sheet.
