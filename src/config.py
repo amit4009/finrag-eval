@@ -23,6 +23,7 @@ SPLIT = os.getenv("FINRAG_SPLIT", "dev")      # "dev", "test" or "all"
 
 # ingestion
 PARSER = "rows"               # "text" (PyMuPDF plain text) | "rows" (E4: table rows kept on one line)
+CHUNKING = "chars"            # "chars" (CHUNK_SIZE / CHUNK_OVERLAP) | "page" (E5: one chunk per page)
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 150
 EMBEDDING_MODEL = "text-embedding-3-large"
@@ -50,7 +51,8 @@ def store_dir():
     """
     emb = EMBEDDING_MODEL.replace("text-embedding-", "")
     parser = "" if PARSER == "text" else f"_{PARSER}"     # keeps pre-E4 store paths valid
-    return f"chroma_store/{PHASE}_{emb}_c{CHUNK_SIZE}o{CHUNK_OVERLAP}{parser}"
+    chunks = "cpage" if CHUNKING == "page" else f"c{CHUNK_SIZE}o{CHUNK_OVERLAP}"
+    return f"chroma_store/{PHASE}_{emb}_{chunks}{parser}"
 
 
 def as_dict():
@@ -59,8 +61,8 @@ def as_dict():
         "phase": PHASE,
         "split": SPLIT,
         "parser": PARSER,
-        "chunk_size": CHUNK_SIZE,
-        "chunk_overlap": CHUNK_OVERLAP,
+        "chunking": CHUNKING,
+        **({"chunk_size": CHUNK_SIZE, "chunk_overlap": CHUNK_OVERLAP} if CHUNKING == "chars" else {}),
         "embedding_model": EMBEDDING_MODEL,
         "retriever": RETRIEVER,
         "top_k": TOP_K,

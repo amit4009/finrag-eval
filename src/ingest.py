@@ -144,11 +144,23 @@ def load_pages(phase=None):
 
 
 # 4. CHUNK ---- split within pages; stable ids so re-adding never duplicates
+# E5: CHUNKING = "page" keeps each page whole. A financial statement runs
+# 3-5k chars, so 1000-char chunks cut most of its rows off from the year header
+# ("(Millions) | 2018 | 2017 | 2016") and the model can't tell the columns apart.
+# Pages are 3k chars at the median and 10k at most -- far inside the embedding
+# model's limit -- and match FinanceBench's page-level labels one to one.
+# A page over PAGE_MAX_CHARS (none in Phase 2) still gets split, as a safety net.
+PAGE_MAX_CHARS = 12000
+
+
 def chunk_pages(pages):
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=config.CHUNK_SIZE,
-        chunk_overlap=config.CHUNK_OVERLAP,
-    )
+    if config.CHUNKING == "page":
+        splitter = RecursiveCharacterTextSplitter(chunk_size=PAGE_MAX_CHARS, chunk_overlap=0)
+    else:
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=config.CHUNK_SIZE,
+            chunk_overlap=config.CHUNK_OVERLAP,
+        )
     chunks = splitter.split_documents(pages)
     counters = {}
     for c in chunks:
