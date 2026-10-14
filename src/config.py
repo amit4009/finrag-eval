@@ -22,7 +22,7 @@ PHASE = os.getenv("FINRAG_PHASE", "phase2")
 SPLIT = os.getenv("FINRAG_SPLIT", "dev")      # "dev", "test" or "all"
 
 # ingestion
-PARSER = "text"               # "text" (PyMuPDF plain text) | "rows" (E4: table rows kept on one line)
+PARSER = "rows"               # "text" (PyMuPDF plain text) | "rows" (E4: table rows kept on one line)
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 150
 EMBEDDING_MODEL = "text-embedding-3-large"
