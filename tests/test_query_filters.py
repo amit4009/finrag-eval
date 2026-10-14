@@ -59,3 +59,15 @@ def test_bm25_where_matching_mirrors_chroma_filters():
     assert matches(meta, chroma_where(["3M"], ["2022"]))
     assert not matches(meta, chroma_where(["3M"], ["2021"]))
     assert not matches(meta, chroma_where(["AMD"], []))
+
+
+@pytest.mark.parametrize("question, companies", [
+    ("What is Coca Cola's FY2021 COGS % margin?", ["COCACOLA"]),        # catalog: "Coca-Cola"
+    ("What was McDonald's FY2022 revenue?", ["MCDONALDS"]),             # catalog: "McDonalds"
+    ("What was McDonald’s FY2022 revenue?", ["MCDONALDS"]),        # curly apostrophe
+    ("Which of JPM's segments had the lowest net revenue?", ["JPMORGAN"]),  # ticker
+    ("What drove the cost of revenue increase?", []),                  # "cost" is not COST
+    ("Did the block of shares sell?", ["BLOCK"]),                      # known limitation: common-word name
+])
+def test_company_name_normalisation_and_tickers(question, companies):
+    assert find_companies(question) == companies
