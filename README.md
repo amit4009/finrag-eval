@@ -11,7 +11,7 @@ Every design choice is tested with a regression-gated eval suite (quality, safet
 |---|---|---|
 | 0 | Project setup, data fetch | ✅ |
 | 1 | One company (PepsiCo): naive baseline | ✅ |
-| 2 | 8 companies: retrieval experiments | |
+| 2 | 8 companies: retrieval experiments | ⏳ E1 done |
 | 3 | All 40 companies: full system, final test-set numbers | |
 | 4 | Production: API, UI, tracing, online evals, CI | |
 | 5 | Write-up | |
@@ -77,3 +77,50 @@ When retrieval misses, the generator abstains rather than inventing a number. Ne
 Judge-free metrics moved by exactly 0. Judge metrics moved by up to 0.052, so `compare` returned
 REVIEW on an unchanged pipeline. The 0.05 tolerance inherited from the tutorial is too tight
 for 11 questions, and is recalibrated on the larger Phase 2 set.
+
+### Phase 2: 8 companies (80 filings, 50,314 chunks), 47 dev questions
+
+The 150 questions are split once into **dev (105) / test (45)**, stratified by question type,
+with a seeded hash of the question id. Phase 2 has 47 dev / 20 test. Experiments are tuned and
+scored on dev only. The test set is run once, at the end of Phase 3.
+
+| Metric | Naive (vector top-5) | **E1: metadata filters** | Judge? |
+|---|---|---|---|
+| doc hit@5 (right filing in top 5) | 0.55 | **0.94** | no |
+| hit@5 (right filing and page) | 0.28 | **0.60** | no |
+| MRR | 0.17 | **0.35** | no |
+| contextual recall | 0.73 | 0.85 | yes |
+| numeric match, full pipeline (7 numeric questions) | 2/7 | **3/7** | no |
+| correctness (GEval) | 0.25 | **0.39** | yes |
+| answer relevancy | 0.42 | **0.64** | yes |
+| faithfulness | 0.91 | 0.85 ⚠️ | yes |
+| questions the pipeline declined to answer | 26/47 | **14/47** | no |
+| numeric match, generator given the gold page | 6/7 | 6/7 | no |
+
+Snapshots: [`baseline.json`](baselines/baseline.json), [`e1_metadata_filters.json`](baselines/e1_metadata_filters.json).
+
+**Corpus growth:** going from 1 company to 8, naive hit@5 fell from 0.55 to 0.28. With 8
+companies there are 6x more look-alike filings to confuse the right one with.
+
+**E1** ([`src/query_filters.py`](src/query_filters.py)) reads the company and the fiscal years
+off the question with plain rules, then filters the vector search to that company and the
+**latest** year named. Filings report earlier years as comparatives, so "FY2015 to FY2017" lives
+in the 2017 10-K. If a filter matches nothing it widens step by step. The extractor targets the
+gold filing's company and year for 44/47 dev questions (`filter_accuracy` 0.94). Two of the three
+misses name no year, and one never names the company.
+
+**Verdict: REVIEW, accepted.** The one regression is faithfulness (−0.057). Refusals make no
+claims, so they score as perfectly faithful, and E1 cut refusals from 26 to 14. Attempting 12
+more answers is what raised correctness, numeric match and answer relevancy, and it also gives
+the judge more claims to find unsupported. Faithfulness is still worth watching: a version scored
+only on attempted answers would separate the two effects.
+
+**Noise check, Phase 2** ([`phase2_noise_rerun.json`](baselines/phase2_noise_rerun.json)): retrieval
+metrics moved by exactly 0, and judge metrics by up to 0.040. The **generator's numeric match
+moved by 1/7 on an identical pipeline**: `gpt-4o-mini` at temperature 0 is not deterministic,
+so judge-free does not mean noise-free. Only retrieval metrics are exactly repeatable. With 7
+numeric questions one answer is 0.14, so numeric-match deltas below 2/7 are noise at this size.
+
+**Judge failures:** `gpt-4o-mini` as judge sometimes loops to its 16k output-token limit on a
+structured step. Those calls are recorded as `n_errors` and left out of the averages, not
+scored 0 (1–2 per run, out of ~600 judge calls).
