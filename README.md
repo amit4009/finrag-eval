@@ -123,4 +123,4 @@ numeric questions one answer is 0.14, so numeric-match deltas below 2/7 are nois
 
 **Judge failures:** `gpt-4o-mini` as judge sometimes loops to its 16k output-token limit on a
 structured step. Those calls are recorded as `n_errors` and left out of the averages, not
-scored 0 (1–2 per run, out of ~600 judge calls).
+scored 0 (1–2 per run, out of 329 judged metric evaluations: 47 questions × 7 judge metrics).
