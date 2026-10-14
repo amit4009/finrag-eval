@@ -19,6 +19,7 @@ from deepeval.metrics import (
 from deepeval.test_case import LLMTestCase
 
 from evals.harness import (
+    JUDGE_ASYNC,
     NO_CACHE,
     load_phase_goldens,
     print_summary,
@@ -43,7 +44,7 @@ def run(rag):
         ))
 
     judge = config.JUDGE_MODEL
-    result = evaluate(cache_config=NO_CACHE, test_cases=test_cases, metrics=[
+    result = evaluate(cache_config=NO_CACHE, async_config=JUDGE_ASYNC, test_cases=test_cases, metrics=[
         ContextualRelevancyMetric(threshold=THRESHOLD, model=judge, include_reason=True),
         FaithfulnessMetric(threshold=THRESHOLD, model=judge, include_reason=True),
         AnswerRelevancyMetric(threshold=THRESHOLD, model=judge, include_reason=True),

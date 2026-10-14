@@ -23,7 +23,7 @@ flag, so it stays correct whether higher or lower score is "good".
 
 import json
 
-from deepeval.evaluate import CacheConfig
+from deepeval.evaluate import AsyncConfig, CacheConfig
 
 FINANCEBENCH_GOLDENS = "goldens/financebench.json"
 
@@ -31,6 +31,11 @@ FINANCEBENCH_GOLDENS = "goldens/financebench.json"
 # Don't write DeepEval's test-run cache: it crashes on a second run in this
 # version, and every snapshot should be a fresh measurement anyway.
 NO_CACHE = CacheConfig(write_cache=False, use_cache=False)
+
+# DeepEval's default runs 20 test cases at once, each firing several judge calls
+# with whole 10-K excerpts. At Phase 2 size that queues requests at the API until
+# they time out. 5 at a time is slower but finishes.
+JUDGE_ASYNC = AsyncConfig(max_concurrent=5)
 
 
 def load_goldens(path):
