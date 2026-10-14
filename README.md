@@ -11,7 +11,7 @@ Every design choice is tested with a regression-gated eval suite (quality, safet
 |---|---|---|
 | 0 | Project setup, data fetch | ✅ |
 | 1 | One company (PepsiCo): naive baseline | ✅ |
-| 2 | 8 companies: retrieval experiments | ⏳ E1 ✅, E2 ❌ |
+| 2 | 8 companies: retrieval experiments | ⏳ E1 ✅, E2 ❌, E3 ❌ |
 | 3 | All 40 companies: full system, final test-set numbers | |
 | 4 | Production: API, UI, tracing, online evals, CI | |
 | 5 | Write-up | |
@@ -168,3 +168,29 @@ It only added wrong candidates, which fusion ranked above correct vector hits. T
 Not pursued: stripping the instruction text from the BM25 query, or weighting the fusion toward
 vectors. Both would be tuned against the same 47 dev questions until something wins. The code
 stays in the repo (`RETRIEVER = "hybrid"`), and E1 remains the baseline.
+
+### E3: cross-encoder reranking. Rejected.
+
+E1's filters, then 20 vector candidates re-scored by `cross-encoder/ms-marco-MiniLM-L-6-v2`
+(the tutorial's reranker), keeping the top 5. Snapshot: [`e3_rerank_minilm.json`](baselines/e3_rerank_minilm.json).
+
+| Metric | E1 | E3 | |
+|---|---|---|---|
+| hit@5 | 0.60 | **0.38** | regressed (3 hits gained, 13 lost) |
+| MRR | 0.35 | **0.21** | regressed |
+| contextual recall | 0.86 | 0.68 | regressed |
+| answer rate | 0.66 | 0.51 | regressed |
+| answer relevancy | 0.63 | 0.46 | regressed |
+| correctness | 0.385 | 0.318 | regressed |
+
+The gold page is among the 20 candidates for 39/47 questions, so a good reranker could reach about
+0.83. This one reorders them badly: **it prefers prose that echoes the question over the
+financial-statement tables that hold the answer.** For 3M's FY2018 capex it ranked *"In 2018, 3M
+expended approximately $27 million for capital projects related to protecting the environment"*
+first and pushed the cash-flow statement from rank 4 to rank 9. For Amcor's net AR it moved the
+balance sheet from rank 1 to rank 6. The model was trained on web search passages, and tables
+are out of its domain.
+
+**E2 and E3 share a root cause:** both judge text by its words, and both fail on tables.
+PyMuPDF's plain text extraction flattens a table into a column of loose labels and numbers, so a
+table chunk barely reads as text. That points to E4 (table-aware parsing) as the next experiment.
