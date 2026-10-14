@@ -97,7 +97,7 @@ scored on dev only. The test set is run once, at the end of Phase 3.
 | questions the pipeline declined to answer | 26/47 | **14/47** | no |
 | numeric match, generator given the gold page | 6/7 | 6/7 | no |
 
-Snapshots: [`baseline.json`](baselines/baseline.json), [`e1_metadata_filters.json`](baselines/e1_metadata_filters.json).
+Snapshots: [`phase2_naive.json`](baselines/phase2_naive.json), [`e1_metadata_filters.json`](baselines/e1_metadata_filters.json). E1 is now [`baseline.json`](baselines/baseline.json), the reference for E2.
 
 **Corpus growth:** going from 1 company to 8, naive hit@5 fell from 0.55 to 0.28. With 8
 companies there are 6x more look-alike filings to confuse the right one with.
