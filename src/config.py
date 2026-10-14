@@ -27,8 +27,11 @@ CHUNK_OVERLAP = 150
 EMBEDDING_MODEL = "text-embedding-3-large"
 
 # retrieval
-RETRIEVER = "filtered"         # "vector" (naive baseline) | "filtered" (E1: company + year filters)
+RETRIEVER = "filtered"        # "vector" (naive) | "filtered" (E1: company + year filters)
+                              # | "hybrid" (E2: E1 + BM25, fused with RRF)
 TOP_K = 5
+HYBRID_FETCH_K = 20           # E2: candidates from EACH of vector and BM25 before fusion
+RRF_K = 60                    # E2: reciprocal rank fusion constant (the standard default)
 
 # generation + judging (one judge model everywhere, unlike the tutorial)
 GENERATOR_MODEL = "gpt-4o-mini"
@@ -55,6 +58,7 @@ def as_dict():
         "embedding_model": EMBEDDING_MODEL,
         "retriever": RETRIEVER,
         "top_k": TOP_K,
+        **({"hybrid_fetch_k": HYBRID_FETCH_K, "rrf_k": RRF_K} if RETRIEVER == "hybrid" else {}),
         "generator_model": GENERATOR_MODEL,
         "judge_model": JUDGE_MODEL,
     }

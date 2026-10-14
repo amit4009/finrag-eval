@@ -50,3 +50,12 @@ def test_chroma_where():
     assert chroma_where(["3M"], []) == {"company": {"$in": ["3M"]}}
     assert chroma_where(["3M"], ["2022"]) == {"$and": [
         {"company": {"$in": ["3M"]}}, {"doc_period": {"$in": ["2022"]}}]}
+
+
+def test_bm25_where_matching_mirrors_chroma_filters():
+    from src.bm25 import matches
+    meta = {"company": "3M", "doc_period": "2022"}
+    assert matches(meta, None)
+    assert matches(meta, chroma_where(["3M"], ["2022"]))
+    assert not matches(meta, chroma_where(["3M"], ["2021"]))
+    assert not matches(meta, chroma_where(["AMD"], []))
