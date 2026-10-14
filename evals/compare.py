@@ -31,7 +31,7 @@ EXIT_CODE = {"PASS": 0, "FAIL": 1, "REVIEW": 2}
 
 
 def load(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -43,7 +43,7 @@ def _is_number(x):
 # ============================================================
 # CLASSIFY one metric: baseline vs candidate, under its rule
 # ============================================================
-def classify(mid, bv, cv, rule):
+def classify(mid, bv, cv, rule, n=None):
     row = {"id": mid, "baseline": bv, "candidate": cv,
            "kind": rule["kind"], "direction": rule["direction"],
            "delta": None, "status": None}
@@ -88,7 +88,9 @@ def classify(mid, bv, cv, rule):
 
     worse = abs(delta)                               # 0 if exactly equal
     tolerance = max(rule["tol"], rule["rel_tol"] * abs(bv))
-    if worse <= tolerance:
+    if rule.get("questions") and n:                  # e.g. one question's flip = 1/n
+        tolerance = max(tolerance, rule["questions"] / n)
+    if worse <= tolerance + 1e-9:                    # float slack: 6/7 - 5/7 vs 1/7
         row["status"] = "flat"                       # inside the noise band
     else:
         row["status"] = "blocked" if rule["kind"] == "gate" else "regressed"
@@ -102,7 +104,14 @@ def compare(baseline, candidate):
     b = baseline.get("metrics", {})
     c = candidate.get("metrics", {})
 
-    rows = [classify(mid, b.get(mid), c.get(mid), rule_for(mid))
+    def n_for(mid):
+        # "<ns>.<metric>.avg_score" -> "<ns>.<metric>.n"; the smaller side's n is
+        # the conservative (wider) choice when the two runs differ
+        key = mid.rsplit(".", 1)[0] + ".n"
+        ns = [x for x in (b.get(key), c.get(key)) if _is_number(x) and x > 0]
+        return min(ns) if ns else None
+
+    rows = [classify(mid, b.get(mid), c.get(mid), rule_for(mid), n_for(mid))
             for mid in sorted(set(b) | set(c))]
 
     if any(r["status"] == "blocked" for r in rows):

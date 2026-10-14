@@ -78,11 +78,17 @@ def summarize_scores(name, scores, threshold):
     }}
 
 
-def summarize_by_metric(result):
-    """DeepEval EvaluationResult -> {metric_name: {n, pass_rate, avg/min/max score}}."""
+def summarize_by_metric(result, keep=None):
+    """DeepEval EvaluationResult -> {metric_name: {n, pass_rate, avg/min/max score}}.
+
+    keep(test_result) -> bool restricts the summary to some test cases, e.g. only
+    the questions the model actually answered.
+    """
     test_results = getattr(result, "test_results", None)
     if test_results is None:
         test_results = result if isinstance(result, list) else []
+    if keep is not None:
+        test_results = [tr for tr in test_results if keep(tr)]
 
     buckets = {}   # metric_name -> {"scores": [...], "passed": int, "total": int, "errors": int}
     for tr in test_results:

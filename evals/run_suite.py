@@ -157,9 +157,10 @@ def run_suite(label="", quiet=False, full=False):
 
     # Trim to what matters unless --full: drop 'info' metrics (avg/min/max/n,
     # secondary latency/cost) and keep gates + guardrails. ~88 metrics -> ~22.
+    # Per-metric n is always kept: compare scales some tolerances by it.
     if not full:
         metrics = {mid: v for mid, v in metrics.items()
-                   if rule_for(mid)["kind"] != "info"}
+                   if rule_for(mid)["kind"] != "info" or mid.endswith(".n")}
 
     snapshot = {
         "metadata": {

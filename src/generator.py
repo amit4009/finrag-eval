@@ -67,6 +67,15 @@ Answer:
 chain = prompt | llm | StrOutputParser()
 
 
+def _norm(text):
+    return text.lower().replace("’", "'").rstrip(". ")    # curly apostrophe -> straight
+
+
+def is_abstention(answer):
+    """Did the model decline with the fixed sentence?"""
+    return _norm(ABSTAIN) in _norm(answer)
+
+
 def format_chunk(doc_name, page, text):
     """The label the model sees, and is asked to copy into its citations."""
     return f"[{doc_name} p.{page}]\n{text}"
