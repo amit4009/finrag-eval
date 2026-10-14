@@ -13,6 +13,15 @@ as a known risk in evals/numeric.py.
     (label goldens/judge_labels.csv: column `correct` = Y or N)
     uv run python -m evals.judge_agreement score     # kappa, confusion matrix
 
+    uv run python -m evals.judge_agreement prepare-numeric   # the 17 numeric questions,
+                                                             # re-answered by the CURRENT prompt
+    (label goldens/judge_labels_numeric.csv)
+    uv run python -m evals.judge_agreement score-numeric     # lenient vs strict numeric match
+
+The numeric round exists because the strict matcher reads the "Final answer:"
+line, which only answers from the E6 prompt onward have. Labeling rule for both
+rounds: judge the answer's final conclusion.
+
 Files:
   goldens/judge_labels.csv             the sheet a human fills in (no judge scores in it)
   goldens/judge_agreement_answers.json answers + judge scores, read only by `score`
@@ -30,11 +39,13 @@ from deepeval.test_case import LLMTestCase
 
 from evals.eval_application import THRESHOLD, correctness_metric
 from evals.harness import JUDGE_RUN, load_phase_goldens
-from evals.numeric import numeric_match
+from evals.numeric import numeric_match, numeric_match_stated
 from src import config
 from src.rag_pipeline import RagPipeline
 
 SHEET = Path("goldens/judge_labels.csv")
+NUM_SHEET = Path("goldens/judge_labels_numeric.csv")
+NUM_ANSWERS = Path("goldens/judge_agreement_numeric_answers.json")
 ANSWERS = Path("goldens/judge_agreement_answers.json")
 SAMPLE_SIZE = 50
 SEED = "judge-agreement-v1"
@@ -147,6 +158,47 @@ def score():
     Path("baselines/judge_agreement.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
 
 
+def prepare_numeric():
+    if NUM_SHEET.exists():
+        raise SystemExit(f"{NUM_SHEET} exists -- refusing to overwrite labels.")
+    picked = [g for g in sample(load_phase_goldens()) if g["numeric"]]
+    rag = RagPipeline()
+    rows, record_ = [], []
+    for i, g in enumerate(picked, 1):
+        answer = rag.invoke(g["question"])["answer"]
+        rows.append({"n": i, "id": g["id"], "question": g["question"],
+                     "expert_answer": g["ideal_answer"],
+                     "expert_justification": (g["justification"] or "").strip(),
+                     "model_answer": answer, "correct": "", "note": ""})
+        record_.append({"id": g["id"], "model_answer": answer,
+                        "numeric_match": numeric_match(answer, g["ideal_answer"], g["question"]),
+                        "numeric_match_stated": numeric_match_stated(answer, g["ideal_answer"],
+                                                                     g["question"])})
+    NUM_ANSWERS.write_text(json.dumps({"config": config.as_dict(), "answers": record_},
+                                      indent=2, ensure_ascii=False), encoding="utf-8")
+    with NUM_SHEET.open("w", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    print(f"wrote {NUM_SHEET} ({len(rows)} rows to label)")
+
+
+def score_numeric():
+    with NUM_SHEET.open(encoding="utf-8-sig") as f:
+        labels = {r["id"]: r["correct"].strip().upper()[:1] for r in csv.DictReader(f)}
+    if any(v not in ("Y", "N") for v in labels.values()):
+        raise SystemExit("not every row is labelled Y or N yet")
+    answers = json.loads(NUM_ANSWERS.read_text(encoding="utf-8"))["answers"]
+    human = [labels[a["id"]] == "Y" for a in answers]
+    out = {"lenient": report("numeric match, lenient (any number)", human,
+                             [a["numeric_match"] for a in answers]),
+           "stated": report("numeric match, strict (Final answer line)", human,
+                            [a["numeric_match_stated"] for a in answers])}
+    Path("baselines/judge_agreement_numeric.json").write_text(json.dumps(out, indent=2),
+                                                              encoding="utf-8")
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    {"prepare": prepare, "score": score}[sys.argv[1] if len(sys.argv) > 1 else "prepare"]()
+    {"prepare": prepare, "score": score, "prepare-numeric": prepare_numeric,
+     "score-numeric": score_numeric}[sys.argv[1] if len(sys.argv) > 1 else "prepare"]()
