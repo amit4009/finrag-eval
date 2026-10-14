@@ -307,3 +307,35 @@ E5 is now [`baseline.json`](baselines/baseline.json).
 hit@5 and doc hit use the duplicate-evidence rule throughout. Correctness went from **0.25 to 0.47**
 and numeric match from **2/7 to 6/7**. Two of the five experiments were rejected, each with a
 diagnosed cause.
+
+## Phase 3: all 40 companies (363 filings, 53,588 pages), 105 dev questions
+
+The full corpus with the Phase 2 winning setup: rows parser, one chunk per page, company and year
+filters, top 5. Company extraction was extended to all 40 companies. Names are matched ignoring
+case, hyphens and both readings of an apostrophe ("Coca Cola" = "Coca-Cola", "Amcor's" = "Amcor",
+"McDonald's" = "McDonalds"), plus stock tickers for all 40 companies, matched case-sensitively
+because COST, BA, FL and KO are also ordinary words. Filter accuracy on dev is 94/105, with no
+question tagged with a wrong company.
+
+| Metric | Phase 2 (47 dev) | **Phase 3 (105 dev)** |
+|---|---|---|
+| hit@5 | 0.553 | **0.667** |
+| doc hit@5 | 0.936 | 0.933 |
+| correctness | 0.469 | **0.499** |
+| numeric match, pipeline | 6/7 | **28/35** (0.80) |
+| numeric match, generator on gold page | 6/7 | 30/35 (0.86) |
+| answer rate | 0.68 | 0.73 |
+| faithfulness (answered) | 0.77 | 0.83 |
+
+Snapshots: [`baseline.json`](baselines/baseline.json), [`phase3_noise_rerun.json`](baselines/phase3_noise_rerun.json)
+(the Phase 2 E5 baseline is kept as [`phase2_e5_baseline.json`](baselines/phase2_e5_baseline.json)).
+
+- **Corpus growth costs nothing with filters on.** The 47 Phase 2 questions score identically
+  against 53,588 pages from 40 companies and against 12,762 pages from 8 (hit@5 0.553, MRR 0.367,
+  doc hit 0.936, to three decimals). The company filter puts every question back into its own
+  company's filings.
+- **Numeric answers are within 2 of the generator's ceiling** (28/35 vs 30/35 on gold pages).
+  Phase 1's gap between the pipeline and the generator is nearly closed at five times the sample
+  size.
+- **The tolerances passed an independent test.** An identical rerun on 105 questions, data the
+  tolerances were *not* fitted to, compares PASS. Retrieval metrics again moved by exactly 0.
