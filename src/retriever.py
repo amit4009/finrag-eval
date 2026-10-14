@@ -113,6 +113,11 @@ RETRIEVERS = {"vector": VectorRetriever, "filtered": FilteredRetriever,
 
 
 def build_retriever():
+    if config.RETRIEVER == "rerank":
+        from src.reranker import (
+            RerankingRetriever,  # here: reranker imports this module
+        )
+        return RerankingRetriever(load_store(), config.TOP_K)
     if config.RETRIEVER in RETRIEVERS:
         return RETRIEVERS[config.RETRIEVER](load_store(), config.TOP_K)
     raise ValueError(f"unknown retriever {config.RETRIEVER!r}")

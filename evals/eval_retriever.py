@@ -69,7 +69,7 @@ def run(retriever):
     goldens = load_phase_goldens()
     k = config.TOP_K
 
-    use_filters = config.RETRIEVER in ("filtered", "hybrid")
+    use_filters = config.RETRIEVER in ("filtered", "hybrid", "rerank")
     info = load_doc_info()
 
     hits, rrs, doc_hits, filter_ok, test_cases = [], [], [], [], []

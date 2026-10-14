@@ -28,10 +28,13 @@ EMBEDDING_MODEL = "text-embedding-3-large"
 
 # retrieval
 RETRIEVER = "filtered"        # "vector" (naive) | "filtered" (E1: company + year filters)
-                              # | "hybrid" (E2: E1 + BM25, fused with RRF)
+                              # | "hybrid" (E2: E1 + BM25, fused with RRF; rejected)
+                              # | "rerank" (E3: E1 + cross-encoder reranking)
 TOP_K = 5
 HYBRID_FETCH_K = 20           # E2: candidates from EACH of vector and BM25 before fusion
 RRF_K = 60                    # E2: reciprocal rank fusion constant (the standard default)
+RERANK_FETCH_K = 20           # E3: filtered vector candidates the cross-encoder re-scores
+RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 # generation + judging (one judge model everywhere, unlike the tutorial)
 GENERATOR_MODEL = "gpt-4o-mini"
@@ -59,6 +62,8 @@ def as_dict():
         "retriever": RETRIEVER,
         "top_k": TOP_K,
         **({"hybrid_fetch_k": HYBRID_FETCH_K, "rrf_k": RRF_K} if RETRIEVER == "hybrid" else {}),
+        **({"rerank_fetch_k": RERANK_FETCH_K, "reranker_model": RERANKER_MODEL}
+           if RETRIEVER == "rerank" else {}),
         "generator_model": GENERATOR_MODEL,
         "judge_model": JUDGE_MODEL,
     }
