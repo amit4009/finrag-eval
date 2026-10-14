@@ -29,7 +29,7 @@ CHUNK_OVERLAP = 150
 EMBEDDING_MODEL = "text-embedding-3-large"
 
 # retrieval
-RETRIEVER = "filtered"        # "vector" (naive) | "filtered" (E1: company + year filters)
+RETRIEVER = "llm_rerank"       # "vector" (naive) | "filtered" (E1: company + year filters)
                               # | "hybrid" (E2: E1 + BM25, fused with RRF; rejected)
                               # | "rerank" (E3: E1 + cross-encoder reranking; rejected)
                               # | "llm_rerank" (E7: E1 + gpt-4o-mini reranks 20 pages)
