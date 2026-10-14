@@ -23,7 +23,7 @@ SPLIT = os.getenv("FINRAG_SPLIT", "dev")      # "dev", "test" or "all"
 
 # ingestion
 PARSER = "rows"               # "text" (PyMuPDF plain text) | "rows" (E4: table rows kept on one line)
-CHUNKING = "chars"            # "chars" (CHUNK_SIZE / CHUNK_OVERLAP) | "page" (E5: one chunk per page)
+CHUNKING = "page"             # "chars" (CHUNK_SIZE / CHUNK_OVERLAP) | "page" (E5: one chunk per page)
 CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 150
 EMBEDDING_MODEL = "text-embedding-3-large"
