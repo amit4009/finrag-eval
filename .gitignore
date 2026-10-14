@@ -1,0 +1,37 @@
+# ---- secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- FinanceBench download cache (fetched by src/fetch_data.py; not ours to redistribute) ----
+financebench/
+
+# ---- generated artifacts (rebuild from scripts) ----
+chroma_store/
+cache/
+
+# ---- DeepEval config, cache, telemetry ----
+.deepeval/
+.deepeval
+.deepeval-cache.json
+.deepeval_telemetry.txt
+temp_test_run_data.json
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.ruff_cache/
+
+# ---- virtual env (uv.lock IS committed for reproducible installs) ----
+.venv/
+
+# ---- model / HF caches ----
+.cache/
+
+# ---- OS / editor ----
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,39 @@
+[project]
+name = "finrag-eval"
+version = "0.1.0"
+description = "Evaluation-driven RAG analyst over SEC filings (FinanceBench), with a regression-gated eval suite."
+authors = [
+    { name = "Amit", email = "i2pandit@gmail.com" }
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "chromadb>=1.5.9",
+    "deepeval>=4.2.8",
+    "fastapi>=0.143.0",
+    "langchain-chroma>=1.1.0",
+    "langchain-core>=1.6.10",
+    "langchain-openai>=1.7.1",
+    "langchain-text-splitters>=1.1.3",
+    "langsmith>=0.14.8",
+    "openai>=3.31.0",
+    "pandas>=3.0.6",
+    "pymupdf>=1.28.2",
+    "python-dotenv>=1.2.4",
+    "pyyaml>=6.0.3",
+    "rank-bm25>=0.2.2",
+    "sentence-transformers>=6.1.0",
+    "streamlit>=1.65.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+# Not a distributable package: run modules from the project root,
+# e.g. `uv run python -m src.fetch_data phase1` / `uv run python -m evals.run_suite`.
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.0",
+]

@@ -1,0 +1,25 @@
+# Which FinanceBench PDFs each phase indexes, by company key (filename prefix,
+# upper-cased; see src/fetch_data.py:company_key). Moving between phases is a
+# config change, not a code change.
+#
+# The test set is always the 150 FinanceBench questions, filtered to the
+# companies in the active phase. Every OTHER PDF of those companies (other
+# years, 10-Qs, 8-Ks) is a deliberate distractor.
+
+# Phase 1 -- one company, all its filings. PepsiCo: most questions (11), 13 PDFs.
+phase1:
+  - PEPSICO
+
+# Phase 2 -- 8 companies across sectors (67 questions).
+phase2:
+  - PEPSICO           # consumer staples
+  - JOHNSON           # healthcare (Johnson & Johnson)
+  - AMCOR             # materials / packaging
+  - 3M                # industrials
+  - AMD               # semiconductors
+  - BESTBUY           # retail
+  - AMERICANEXPRESS   # financials
+  - MGMRESORTS        # hospitality
+
+# Phase 3 -- the full corpus: all 368 PDFs, 40 companies, 150 questions.
+phase3: all
