@@ -27,7 +27,7 @@ def test_generator_flip_metrics_allow_one_question():
 def test_judge_tolerances_are_per_metric():
     # correctness is ~3x less noisy than faithfulness: one shared 0.05 was wrong both ways
     assert rule_for("application.correctness_[geval].avg_score")["tol"] == 0.03
-    assert rule_for("generator.faithfulness.avg_score")["tol"] == 0.07
+    assert rule_for("generator.faithfulness.avg_score")["tol"] == 0.06
     assert rule_for("some.unmeasured_metric.avg_score")["tol"] == 0.05   # default
 
 

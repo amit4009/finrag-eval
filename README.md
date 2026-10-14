@@ -115,10 +115,11 @@ more answers is what raised correctness, numeric match and answer relevancy, and
 the judge more claims to find unsupported. Faithfulness is still worth watching: a version scored
 only on attempted answers would separate the two effects.
 
-**Noise and tolerances** (`python -m evals.noise`): five snapshots of identical pipelines
+**Noise and tolerances** (`python -m evals.noise`): seven snapshots of identical pipelines
 (2 naive: [`phase2_naive`](baselines/phase2_naive.json), [`phase2_noise_rerun`](baselines/phase2_noise_rerun.json);
-3 E1: [`e1_metadata_filters`](baselines/e1_metadata_filters.json), [`baseline`](baselines/baseline.json),
-[`e1_noise_rerun`](baselines/e1_noise_rerun.json)) give each metric's run-to-run noise. Three findings:
+3 E1: [`e1_metadata_filters`](baselines/e1_metadata_filters.json), [`e1_new_metrics_run`](baselines/e1_new_metrics_run.json),
+[`e1_noise_rerun`](baselines/e1_noise_rerun.json); 2 E4: [`e4_rows_parser`](baselines/e4_rows_parser.json),
+[`baseline`](baselines/baseline.json)) give each metric's run-to-run noise. Three findings:
 
 - **Retrieval metrics are exactly repeatable** (σ = 0), so any change is real and tolerance is 0.
 - **The generator isn't deterministic**: `gpt-4o-mini` at temperature 0 changed one numeric answer
@@ -127,9 +128,10 @@ only on attempted answers would separate the two effects.
   The single 0.05 tolerance inherited from the tutorial was too loose for some metrics and too
   tight for others, and gave false REVIEWs on unchanged pipelines. Each judge metric now has its
   own tolerance, 2.77σ (the 95% band for a difference of two noisy runs), with a floor of 0.03.
+  Recomputed as runs accumulate: the E4 pair narrowed four of them, and no verdict changed.
 
 A first estimate from a single pair of runs said 0.05 was enough, and the next pair disproved it.
-The current tolerances come from 3 degrees of freedom (1 for the two newest metrics), so they are
+The current tolerances come from 4 degrees of freedom (2 for the two newest metrics), so they are
 estimates. They were also fitted to the runs they now pass, and get re-measured as runs accumulate.
 
 **Refusals and faithfulness:** a refusal makes no claims, so it scores 1.0 on faithfulness, and
@@ -227,3 +229,35 @@ sometimes outrank the 10-K for full-year questions. Hence the contextual-recall 
 candidate follow-up: prefer 10-Ks for full-year questions.
 
 E4 is now [`baseline.json`](baselines/baseline.json).
+
+### Eval fix: duplicate evidence pages count as hits
+
+FinanceBench labels one `(doc, page)` per piece of evidence, but some filings repeat others.
+[`goldens/build_equivalents.py`](goldens/build_equivalents.py) compares each gold page with every
+page of the same company's other filings **for the same fiscal period**, by Jaccard overlap of word
+5-grams (≥ 0.8). Near-copies are recorded in
+[`evidence_equivalents.json`](goldens/evidence_equivalents.json) and accepted by hit@k, MRR and
+doc hit. In Phase 2 this covers 4 AMD questions (the annual report is the 10-K, Jaccard 0.85 to
+0.995) and an AMCOR 8-K filed under two names.
+
+Cross-year copies are **excluded on purpose**: companies repeat boilerplate pages verbatim
+(AMCOR's 2022 and 2023 10-K page 4 match at Jaccard 1.0), but a question "as of FY2022" must be
+answered from the FY2022 filing.
+
+Retrieval is deterministic, so every past experiment was re-scored under both rules
+([`evals/rescore_retrieval.py`](evals/rescore_retrieval.py) →
+[`retrieval_rescored.json`](baselines/retrieval_rescored.json)). The old-rule column reproduces each
+snapshot exactly:
+
+| | hit@5 | MRR | doc hit@5 |
+|---|---|---|---|
+| naive | 0.277 → 0.277 | 0.173 → 0.173 | 0.553 → 0.553 |
+| E1 filters | 0.596 → 0.596 | 0.351 → 0.351 | 0.936 → 0.936 |
+| E2 hybrid ❌ | 0.383 → 0.383 | 0.312 → 0.312 | 0.915 → 0.936 |
+| E3 rerank ❌ | 0.383 → 0.383 | 0.214 → 0.224 | 0.915 → 0.915 |
+| **E4 rows ✅** | 0.596 → **0.617** | 0.383 → 0.390 | 0.894 → **0.915** |
+
+**No verdict changes.** The fix landed after the E4 decision, as its own commit, applied to every
+experiment. Under it E4's page hit rate beats E1 (0.617 vs 0.596), and its one remaining lost
+filing (J&J) is a real miss. The E4 baseline was re-run under the new rule and compares PASS
+against the original E4 run.

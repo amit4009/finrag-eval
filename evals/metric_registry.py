@@ -54,8 +54,8 @@ GATE_HIGHER_AVG = {"direction": "higher", "kind": "gate",      "tol": 0.02, "rel
 GATE_LOWER_AVG  = {"direction": "lower",  "kind": "gate",      "tol": 0.02, "rel_tol": 0.0}   # toxicity
 QUALITY_GUARD   = {"direction": "higher", "kind": "guardrail", "tol": 0.05, "rel_tol": 0.0}   # quality
 
-# FinanceBench recalibration, Phase 2 (47 dev questions). Five snapshots of
-# identical pipelines -- 2 naive, 3 E1 -- measured by `python -m evals.noise`
+# FinanceBench recalibration, Phase 2 (47 dev questions). Seven snapshots of
+# identical pipelines -- 2 naive, 3 E1, 2 E4 -- measured by `python -m evals.noise`
 # (pooled within-group sigma; tol = 2.77 sigma rounded up, floor 0.03):
 #   - retrieval metrics (hit@k, MRR, doc hit, filter accuracy): sigma exactly 0.
 #     No LLM involved, so any change is real -> tolerance 0. (0.05 would hide a
@@ -74,17 +74,18 @@ EXACT_RETRIEVAL = ("retriever.hit_at_", "retriever.mrr.", "retriever.doc_hit_at_
 GENERATOR_FLIPS = (".numeric_match.",)
 
 #                                                  tol    sigma   df
+# Groups: naive x2, E1 x3, E4 x2 (7 snapshots). The two newest metrics only
+# exist in E1 x2 + E4 x2 (df=2): provisional. Both move with the set of
+# questions the model chooses to answer.
 MEASURED_TOL = {
-    "application.correctness_[geval].avg_score":  0.03,  # 0.007   3
-    "retriever.contextual_recall.avg_score":      0.03,  # 0.009   3
-    "pipeline.contextual_relevancy.avg_score":    0.03,  # 0.007   3
-    "pipeline.answer_relevancy.avg_score":        0.06,  # 0.018   3
-    "generator.answer_relevancy.avg_score":       0.07,  # 0.024   3
-    "generator.faithfulness.avg_score":           0.07,  # 0.024   3
-    # provisional: one pair of runs only (df=1); both move with the set of
-    # questions the model chooses to answer
-    "pipeline.faithfulness_attempted.avg_score":  0.12,  # 0.040   1
-    "pipeline.answer_rate.avg_score":             0.09,  # 0.030   1
+    "application.correctness_[geval].avg_score":  0.03,  # 0.006   4
+    "retriever.contextual_recall.avg_score":      0.03,  # 0.008   4
+    "pipeline.contextual_relevancy.avg_score":    0.03,  # 0.008   4
+    "pipeline.answer_relevancy.avg_score":        0.05,  # 0.017   4
+    "generator.answer_relevancy.avg_score":       0.07,  # 0.023   4
+    "generator.faithfulness.avg_score":           0.06,  # 0.021   4
+    "pipeline.faithfulness_attempted.avg_score":  0.10,  # 0.033   2
+    "pipeline.answer_rate.avg_score":             0.07,  # 0.024   2
 }
 
 # Operational metrics -- direct measurements, unchanged.
