@@ -11,7 +11,7 @@ Every design choice is tested with a regression-gated eval suite (quality, safet
 |---|---|---|
 | 0 | Project setup, data fetch | ✅ |
 | 1 | One company (PepsiCo): naive baseline | ✅ |
-| 2 | 8 companies: retrieval experiments | ⏳ E1 done |
+| 2 | 8 companies: retrieval experiments | ⏳ E1 ✅, E2 ❌ |
 | 3 | All 40 companies: full system, final test-set numbers | |
 | 4 | Production: API, UI, tracing, online evals, CI | |
 | 5 | Write-up | |
@@ -140,3 +140,31 @@ that E1 triggered. The pipeline eval now also reports `answer_rate` and
 **Judge failures:** `gpt-4o-mini` as judge sometimes loops to its 16k output-token limit on a
 structured step. Those calls are recorded as `n_errors` and left out of the averages, not
 scored 0 (1–2 per run, out of 329 judged metric evaluations: 47 questions × 7 judge metrics).
+
+### E2: hybrid BM25 + vector search. Rejected.
+
+E1's filters, with BM25 keyword search run next to the vector search: top 20 from each, fused
+by reciprocal rank fusion (k=60). Snapshot: [`e2_hybrid.json`](baselines/e2_hybrid.json).
+
+| Metric | E1 | E2 | |
+|---|---|---|---|
+| hit@5 | 0.60 | **0.38** | regressed (exact metric: 2 hits gained, 12 lost) |
+| MRR | 0.35 | 0.31 | regressed |
+| doc hit@5 | 0.94 | 0.91 | regressed |
+| contextual recall | 0.86 | 0.79 | regressed |
+| correctness | 0.385 | 0.355 | regressed (just past its 0.03 tolerance) |
+| numeric match, answer rate, faithfulness (answered) | 3/7, 0.66, 0.74 | 2/7, 0.57, 0.78 | within noise |
+
+**Why it hurt:** for every lost question checked, BM25 never had the gold page in its top 20.
+It only added wrong candidates, which fusion ranked above correct vector hits. Two causes:
+
+- FinanceBench questions carry instructions ("If the quick ratio is not something a financial
+  analyst would ask about… state that and explain why"), and BM25 matches those words literally.
+  The AMCOR quick-ratio question pulled governance pages ("Removal of Directors").
+- Questions and filings use different words: "capital expenditure" vs "Purchases of property,
+  plant and equipment". Embeddings bridge that gap and keywords can't, the opposite of the usual
+  case for hybrid search.
+
+Not pursued: stripping the instruction text from the BM25 query, or weighting the fusion toward
+vectors. Both would be tuned against the same 47 dev questions until something wins. The code
+stays in the repo (`RETRIEVER = "hybrid"`), and E1 remains the baseline.
