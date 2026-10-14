@@ -382,33 +382,39 @@ expert answer, FinanceBench's justification and the model's answer. Labels:
 
 | | agreement | Cohen's κ | false passes (judge ✓, human ✗) | false fails (judge ✗, human ✓) |
 |---|---|---|---|---|
-| **GEval correctness** (score ≥ 0.7) | 0.74 | **0.51** | **0** | 13 |
-| **numeric match** (17 numeric questions) | 0.88 | **0.60** | 2 | 0 |
+| **GEval correctness** (score ≥ 0.7) | 0.72 | **0.48** | **0** | 14 |
+| **numeric match** (17 numeric questions) | 0.94 | **0.77** | 1 | 0 |
 
 - **The judge is strict, not lenient.** It never accepted an answer the human rejected. Every
-  human-rejected answer scored 0.0, except two at 0.48 and 0.50. All disagreements are correct
-  answers scored below 0.7, and human-correct answers range from 0.40 to 1.0. **So correctness has
-  been *understated*:** the human rates 29/50 answers correct (58%), and the judge passes 16/50
-  (32%). Regression verdicts gate on the *average* score, which still tracks quality, but the
-  absolute numbers are conservative. The threshold was **not** retuned on these 50 labels; that
-  would fit the judge to the very data used to check it.
-- **The numeric matcher's leniency is real.** It accepts a correct number *anywhere* in the answer,
-  which is the risk noted in `evals/numeric.py` since Phase 1. Both of its false passes are
-  answers whose working contains the right number but whose stated answer is wrong.
-- **Labeling found a generator bug:** *the stated answer contradicts the model's own working*.
+  human-rejected answer scored 0.0, except one at 0.50. All disagreements are correct answers
+  scored below 0.7, and human-correct answers range from 0.40 to 1.0. **So correctness has been
+  *understated*:** the human rates 30/50 answers correct (60%), and the judge passes 16/50 (32%).
+  Regression verdicts gate on the *average* score, which still tracks quality, but the absolute
+  numbers are conservative. The threshold was **not** retuned on these 50 labels; that would fit
+  the judge to the very data used to check it.
+- **The numeric matcher's leniency is real.** It accepts a correct number *anywhere* in the
+  answer, the risk noted in `evals/numeric.py` since Phase 1. Its one false pass (Amazon DPO) has
+  the right number in the working and a wrong conclusion.
+- **Labeling found a generator bug: answers that contradict themselves.** The prompt said *"Lead
+  with the direct answer in the first sentence"*, so the model opened with a number *before* doing
+  the arithmetic, worked it out, and often concluded with a different one:
 
-  | | expert | model's working | model's stated answer |
-  |---|---|---|---|
-  | Kraft Heinz inventory turnover | 6.25 | "16,830 / 2,694 ≈ **6.25**" | **3.06** |
-  | Amazon DPO | 93.86 | "365 × 0.256 = **93.64**" | **36.73** days |
-  | Best Buy 3-yr avg margin | 2.8% | "(3.1 + 2.0 + 3.1) / 3 = **2.73%**" | **3.1%** |
+  | | expert | first sentence | conclusion | label |
+  |---|---|---|---|---|
+  | Kraft Heinz inventory turnover | 6.25 | 3.06 | "rounding gives **6.25**" | Y |
+  | PepsiCo EBITDA less capex | $9,068M | 8,068 | **$9,068 million** | Y |
+  | Corning 3-yr avg margin | 10.3% | 15.5% | "the correct average… is **10.3%**. I apologize for the confusion" | Y |
+  | Best Buy 3-yr avg margin | 2.8% | 3.1% | "rounding… gives **3.1%**" (its own sum is 2.73%) | N |
+  | Amazon DPO | 93.86 | 36.73 | **36.73** (its own working says 93.64) | N |
 
-  The prompt says *"Lead with the direct answer in the first sentence"*, so the model commits to a
-  number **before** doing the arithmetic. Calculating first and stating the answer last is the
-  obvious next experiment.
-- **Labeling rule, made consistent:** judge the *stated* answer, the one an analyst reads. One
-  label was changed from Y to N for consistency with two others, and the change is noted in the
-  sheet.
+- **Labeling rule: judge the final conclusion.** The human labels follow it consistently. One
+  label was changed from Y to N because the comparison looked at first sentences only, then
+  restored once the conclusions were compared. The note in the sheet records this.
+- **Strict numeric matcher** (`numeric_match_stated`): it reads only the `Final answer:` line,
+  i.e. the conclusion, which the prompt requires since E6. A first-sentence version was tried and
+  rejected: it picked the wrong number in 4 of the 17 labeled answers above. For pre-E6 answers
+  with no such line, it falls back to the lenient check, because their conclusion has no fixed
+  position.
 
 ### E6: work first, state the final answer last. Accepted (PASS).
 
@@ -425,8 +431,9 @@ change. Snapshot: [`e6_answer_last.json`](baselines/e6_answer_last.json).
 | numeric match | 28/35 | 27/35 | within noise |
 | faithfulness, retrieval | | | unchanged |
 
-The three contradiction cases from labeling now end correctly: Kraft Heinz **6.24** (expert 6.25;
-16,830 / 2,694 = 6.247), Best Buy **2.8%**, Amazon DPO **93.64** (expert 93.86).
+The contradiction cases from labeling now conclude correctly with a `Final answer:` line: Kraft
+Heinz **6.24** (expert 6.25; 16,830 / 2,694 = 6.247), Best Buy **2.8%**, Amazon DPO **93.64**
+(expert 93.86).
 
 **Numeric match can't see this fix**, because its leniency masked the bug in the first place: it
 credited the old answers for the right number buried in their working. The judge reads the stated

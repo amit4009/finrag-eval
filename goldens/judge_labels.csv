@@ -101,7 +101,7 @@ To calculate the inventory turnover ratio for Kraft Heinz in FY2019, I used the 
 Now, I calculate the inventory turnover ratio:
 - Inventory Turnover Ratio = COGS / Average Inventory = $16,830 million / $2,694 million ≈ 6.25.
 
-Rounding to two decimal places gives an inventory turnover ratio of 6.25.",N,"stated 3.06; own working gives 6.25 (relabelled Y->N for consistency with rows 21, 32)"
+Rounding to two decimal places gives an inventory turnover ratio of 6.25.",Y,"first sentence says 3.06 but the answer concludes 6.25 (correct). Labeled Y, briefly changed to N, restored to Y: rule = judge the final conclusion"
 20,financebench_id_04103,metrics-generated,What is the FY2019 cash conversion cycle (CCC) for General Mills? CCC is defined as: DIO + DSO - DPO. DIO is defined as: 365 * (average inventory between FY2018 and FY2019) / (FY2019 COGS). DSO is defined as: 365 * (average accounts receivable between FY2018 and FY2019) / (FY2019 Revenue). DPO is defined as: 365 * (average accounts payable between FY2018 and FY2019) / (FY2019 COGS + change in inventory between FY2018 and FY2019). Round your answer to two decimal places. Address the question by using the line items and information shown within the income statement and the balance sheet.,-3.7,"The metric in question was calculated using other simpler metrics. The various simpler metrics (from the current and, if relevant, previous fiscal year(s)) used were:
 
 Metric 1: Accounts payable. This metric was located in the 10K as a single line item named: Accounts payable.

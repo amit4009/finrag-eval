@@ -32,6 +32,7 @@ from evals.harness import (
     JUDGE_RUN,
     load_phase_goldens,
     print_summary,
+    record,
     summarize_by_metric,
     summarize_scores,
 )
@@ -48,6 +49,7 @@ def run(rag):
     test_cases = []
     for g in goldens:
         result = rag.invoke(g["question"])
+        record("pipeline", g["id"], answer=result["answer"], sources=result["sources"])
         test_cases.append(LLMTestCase(
             input=g["question"],
             actual_output=result["answer"],

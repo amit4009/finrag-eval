@@ -71,7 +71,10 @@ ONE_FLIP_GUARD  = {"direction": "higher", "kind": "guardrail", "tol": 0.0, "rel_
 
 EXACT_RETRIEVAL = ("retriever.hit_at_", "retriever.mrr.", "retriever.doc_hit_at_",
                    "retriever.filter_accuracy.")
-GENERATOR_FLIPS = (".numeric_match.",)
+GENERATOR_FLIPS = (".numeric_match_stated.",)
+# lenient numeric match (any number anywhere) is info: judge-agreement labels showed
+# it crediting right numbers in the working when the conclusion was wrong
+LENIENT_NUMERIC = ".numeric_match."
 
 #                                                  tol    sigma   df
 # Groups: naive x2, E1 x3, E4 x2 (7 snapshots). The two newest metrics only
@@ -122,6 +125,8 @@ def rule_for(metric_id):
     if mid.endswith("avg_score"):
         if mid.startswith(EXACT_RETRIEVAL):
             return EXACT_GUARD
+        if LENIENT_NUMERIC in mid:
+            return INFO
         if any(part in mid for part in GENERATOR_FLIPS):
             return ONE_FLIP_GUARD
         if mid in MEASURED_TOL:

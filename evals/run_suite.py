@@ -36,6 +36,7 @@ from evals import (
     eval_rag_pipeline,
     eval_retriever,
 )
+from evals.harness import RECORDS
 from evals.metric_registry import rule_for
 from src import config
 from src.rag_pipeline import RagPipeline
@@ -223,6 +224,14 @@ def main():
     print_snapshot(snapshot)
     path = write_snapshot(snapshot, out)
     print(f"\nwrote snapshot -> {path}")
+
+    # per-question answers + retrieved pages, so a later scoring-rule change can
+    # re-score this run exactly (snapshots keep only aggregates)
+    answers = os.path.join(os.path.dirname(path), "answers", os.path.basename(path))
+    os.makedirs(os.path.dirname(answers), exist_ok=True)
+    with open(answers, "w", encoding="utf-8") as f:
+        json.dump({"snapshot": path, "records": RECORDS}, f, indent=1, ensure_ascii=False)
+    print(f"wrote {len(RECORDS)} per-question records -> {answers}")
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ def test_retrieval_metrics_have_zero_tolerance():
 
 
 def test_generator_flip_metrics_allow_one_question():
-    for mid in ["generator.numeric_match.avg_score", "application.numeric_match.avg_score"]:
+    for mid in ["generator.numeric_match_stated.avg_score", "application.numeric_match_stated.avg_score"]:
         assert rule_for(mid)["questions"] == 1, mid
 
 
@@ -41,14 +41,14 @@ def test_plain_faithfulness_is_info_attempted_is_guarded():
 
 def test_one_numeric_flip_out_of_7_is_flat():
     # Phase 2 noise rerun: 6/7 -> 5/7 on an identical pipeline
-    assert verdict({"generator__numeric_match__avg_score": 6 / 7, "generator__numeric_match__n": 7},
-                   {"generator__numeric_match__avg_score": 5 / 7, "generator__numeric_match__n": 7}
+    assert verdict({"generator__numeric_match_stated__avg_score": 6 / 7, "generator__numeric_match_stated__n": 7},
+                   {"generator__numeric_match_stated__avg_score": 5 / 7, "generator__numeric_match_stated__n": 7}
                    ) == "PASS"
 
 
 def test_two_numeric_flips_out_of_7_regress():
-    assert verdict({"generator__numeric_match__avg_score": 6 / 7, "generator__numeric_match__n": 7},
-                   {"generator__numeric_match__avg_score": 4 / 7, "generator__numeric_match__n": 7}
+    assert verdict({"generator__numeric_match_stated__avg_score": 6 / 7, "generator__numeric_match_stated__n": 7},
+                   {"generator__numeric_match_stated__avg_score": 4 / 7, "generator__numeric_match_stated__n": 7}
                    ) == "REVIEW"
 
 
@@ -78,8 +78,8 @@ def test_plain_faithfulness_drop_no_longer_triggers_review():
 
 
 def test_without_n_per_question_rule_falls_back_to_zero_tolerance():
-    assert verdict({"generator__numeric_match__avg_score": 6 / 7},
-                   {"generator__numeric_match__avg_score": 5 / 7}) == "REVIEW"
+    assert verdict({"generator__numeric_match_stated__avg_score": 6 / 7},
+                   {"generator__numeric_match_stated__avg_score": 5 / 7}) == "REVIEW"
 
 
 # ---- abstention detection ----
@@ -104,3 +104,8 @@ def test_duplicate_evidence_page_counts_as_hit():
     retrieved = [_doc("AMD_2022_annualreport", 10), _doc("AMD_2022_annualreport", 8)]
     assert rank_scores(retrieved, expected) == (0.0, 0.0, 0.0)          # old rule: miss
     assert rank_scores(retrieved, expected, copies) == (1.0, 0.5, 1.0)  # copy at rank 2
+
+
+def test_lenient_numeric_match_is_info():
+    assert rule_for("application.numeric_match.avg_score")["kind"] == "info"
+    assert rule_for("application.numeric_match_stated.avg_score")["kind"] == "guardrail"

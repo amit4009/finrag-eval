@@ -24,10 +24,11 @@ from evals.harness import (
     JUDGE_RUN,
     load_phase_goldens,
     print_summary,
+    record,
     summarize_by_metric,
     summarize_scores,
 )
-from evals.numeric import numeric_match
+from evals.numeric import numeric_match, numeric_match_stated
 from src import config
 from src.generator import generate
 
@@ -37,9 +38,10 @@ THRESHOLD = 0.7
 def run():
     goldens = load_phase_goldens()
 
-    test_cases, numeric = [], []
+    test_cases, numeric, numeric_stated = [], [], []
     for g in goldens:
         answer = generate(g["question"], g["golden_context"])
+        record("generator", g["id"], answer=answer)
 
         test_cases.append(LLMTestCase(
             input=g["question"],
@@ -48,6 +50,7 @@ def run():
         ))
         if g["numeric"]:
             numeric.append(float(numeric_match(answer, g["ideal_answer"], g["question"])))
+            numeric_stated.append(float(numeric_match_stated(answer, g["ideal_answer"], g["question"])))
 
     result = evaluate(**JUDGE_RUN, test_cases=test_cases, metrics=[
         FaithfulnessMetric(threshold=THRESHOLD, model=config.JUDGE_MODEL, include_reason=True),
@@ -56,6 +59,7 @@ def run():
 
     summary = summarize_by_metric(result)
     summary.update(summarize_scores("numeric_match", numeric, 1.0))
+    summary.update(summarize_scores("numeric_match_stated", numeric_stated, 1.0))
     return summary
 
 

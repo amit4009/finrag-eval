@@ -19,9 +19,21 @@ answer equals the ideal one, after:
   - percent vs fraction:  "16.5%" == "0.165" when only one side is a percent
 
 Citations like [PEPSICO_2021_10K p.62] are stripped first so their years and
-page numbers can't match by accident. Known leniency: a correct number that
-appears anywhere (e.g. as a calculation input) counts. Phase 3's judge-agreement
-check against hand labels measures how often that matters.
+page numbers can't match by accident.
+
+TWO VARIANTS:
+  numeric_match         any number anywhere in the answer may match. Lenient: the
+                        judge-agreement labels caught it crediting answers whose
+                        WORKING held the right number while the STATED answer was
+                        wrong (Amazon DPO: working 93.64, stated 36.73).
+  numeric_match_stated  only the "Final answer:" line may match: the answer's
+                        conclusion, which the prompt asks for since E6. This is the
+                        guardrail; the lenient variant is kept as info.
+
+  Answers without a "Final answer:" line (pre-E6 prompt) fall back to the lenient
+  check: their conclusion has no fixed position. The first sentence was tried and
+  was wrong four times in 17 labelled answers -- the model opened with one number
+  and concluded with the corrected one (Kraft Heinz: "3.06" ... "gives 6.25").
 """
 
 import re
@@ -96,3 +108,19 @@ def numeric_match(answer, ideal, question=""):
             if _close(other, gold, tol):
                 return True
     return False
+
+
+# "Final answer: X", tolerating Markdown bold on either side of the colon
+FINAL_LINE = re.compile(r"^\s*\**\s*final answer\s*\**\s*:\s*\**\s*(.+?)\s*\**\s*$",
+                        re.IGNORECASE | re.MULTILINE)
+
+
+def stated_answer(answer):
+    """The answer's conclusion: its last "Final answer:" line, or None."""
+    finals = FINAL_LINE.findall(answer)
+    return finals[-1].strip() if finals else None
+
+
+def numeric_match_stated(answer, ideal, question=""):
+    stated = stated_answer(answer)
+    return numeric_match(answer if stated is None else stated, ideal, question)

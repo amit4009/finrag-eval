@@ -40,6 +40,7 @@ from evals.harness import (
     JUDGE_RUN,
     load_phase_goldens,
     print_summary,
+    record,
     summarize_by_metric,
     summarize_scores,
 )
@@ -95,6 +96,8 @@ def run(retriever):
     hits, rrs, doc_hits, filter_ok, test_cases = [], [], [], [], []
     for g in goldens:
         retrieved = retriever.invoke(g["question"])
+        record("retriever", g["id"], sources=[{"doc_name": d.metadata["doc_name"],
+                                               "page": d.metadata["page"]} for d in retrieved])
 
         hit, rr, doc_hit = rank_scores(retrieved, g["expected_evidence"],
                                        equivalents.get(g["id"], ()))

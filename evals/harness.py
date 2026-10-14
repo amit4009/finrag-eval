@@ -27,6 +27,15 @@ from deepeval.evaluate import AsyncConfig, CacheConfig, ErrorConfig
 
 FINANCEBENCH_GOLDENS = "goldens/financebench.json"
 
+# Per-question outputs of the current run (answers, retrieved pages), written
+# next to the snapshot by run_suite. Snapshots keep only aggregates; these let a
+# later scoring-rule change re-score an old run exactly instead of re-running it.
+RECORDS = []
+
+
+def record(eval_name, golden_id, **fields):
+    RECORDS.append({"eval": eval_name, "id": golden_id, **fields})
+
 
 # Don't write DeepEval's test-run cache: it crashes on a second run in this
 # version, and every snapshot should be a fresh measurement anyway.

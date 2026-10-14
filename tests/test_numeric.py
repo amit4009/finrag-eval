@@ -45,3 +45,28 @@ def test_question_scale():
     assert question_scale(Q_BN) == 1e9
     assert question_scale(Q_MN) == 1e6
     assert question_scale(Q_RATIO) == 1.0
+
+
+# ---- stated answer: the "Final answer:" line ----
+from evals.numeric import numeric_match_stated, stated_answer  # noqa: E402
+
+DPO_Q = "What is Amazon's FY2017 days payable outstanding (DPO)?"
+
+
+def test_stated_answer_reads_the_final_line():
+    a = "Working: 365 * 0.256 = 93.64.\n\nFinal answer: 93.64 days"
+    assert stated_answer(a) == "93.64 days"
+    assert stated_answer("**Final answer:** $4.6 billion") == "$4.6 billion"
+
+
+def test_strict_match_ignores_right_numbers_in_the_working():
+    # the lenient matcher's false pass from the labels: right in the working, wrong conclusion
+    a = "DPO = 365 * 0.256 = 93.64\n\nFinal answer: 36.73 days"
+    assert numeric_match(a, "93.86", DPO_Q)               # lenient: passes
+    assert not numeric_match_stated(a, "93.86", DPO_Q)    # strict: fails
+
+
+def test_without_final_line_strict_falls_back_to_lenient():
+    a = "DPO is 36.73 days. Working: 365 * 0.256 = 93.64."
+    assert stated_answer(a) is None
+    assert numeric_match_stated(a, "93.86", DPO_Q) == numeric_match(a, "93.86", DPO_Q)

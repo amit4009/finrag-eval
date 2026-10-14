@@ -3,8 +3,9 @@ evals/eval_application.py -- end-to-end answer quality vs the expert answers.
 
   correctness    GEval judge, all questions: does the answer agree with the
                  FinanceBench expert answer?
-  numeric_match  no judge, metrics-generated questions only: is the number right?
-                 (see evals/numeric.py)
+  numeric_match_stated  no judge, metrics-generated questions only: is the
+                        number on the "Final answer:" line right? (evals/numeric.py)
+  numeric_match         lenient variant, any number in the answer (info only)
 
 The tutorial's Completeness and Style metrics are dropped: FinanceBench answers
 are short facts, and a teaching voice is no longer the goal.
@@ -21,10 +22,11 @@ from evals.harness import (
     JUDGE_RUN,
     load_phase_goldens,
     print_summary,
+    record,
     summarize_by_metric,
     summarize_scores,
 )
-from evals.numeric import numeric_match
+from evals.numeric import numeric_match, numeric_match_stated
 from src import config
 from src.rag_pipeline import RagPipeline
 
@@ -58,9 +60,10 @@ def correctness_metric():
 def run(rag):
     goldens = load_phase_goldens()
 
-    test_cases, numeric = [], []
+    test_cases, numeric, numeric_stated = [], [], []
     for g in goldens:
         result = rag.invoke(g["question"])
+        record("application", g["id"], answer=result["answer"], sources=result["sources"])
         test_cases.append(LLMTestCase(
             input=g["question"],
             actual_output=result["answer"],
@@ -68,11 +71,14 @@ def run(rag):
         ))
         if g["numeric"]:
             numeric.append(float(numeric_match(result["answer"], g["ideal_answer"], g["question"])))
+            numeric_stated.append(float(numeric_match_stated(result["answer"], g["ideal_answer"],
+                                                             g["question"])))
 
     result = evaluate(**JUDGE_RUN, test_cases=test_cases, metrics=[correctness_metric()])
 
     summary = summarize_by_metric(result)
     summary.update(summarize_scores("numeric_match", numeric, 1.0))
+    summary.update(summarize_scores("numeric_match_stated", numeric_stated, 1.0))
     return summary
 
 
