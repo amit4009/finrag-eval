@@ -11,7 +11,7 @@ Every design choice is tested with a regression-gated eval suite (quality, safet
 |---|---|---|
 | 0 | Project setup, data fetch | ✅ |
 | 1 | One company (PepsiCo): naive baseline | ✅ |
-| 2 | 8 companies: retrieval experiments | ⏳ E1 ✅, E2 ❌, E3 ❌, E4 ✅ |
+| 2 | 8 companies: retrieval experiments | ✅ E1 ✅, E2 ❌, E3 ❌, E4 ✅, E5 ✅ |
 | 3 | All 40 companies: full system, final test-set numbers | |
 | 4 | Production: API, UI, tracing, online evals, CI | |
 | 5 | Write-up | |
@@ -119,7 +119,7 @@ only on attempted answers would separate the two effects.
 (2 naive: [`phase2_naive`](baselines/phase2_naive.json), [`phase2_noise_rerun`](baselines/phase2_noise_rerun.json);
 3 E1: [`e1_metadata_filters`](baselines/e1_metadata_filters.json), [`e1_new_metrics_run`](baselines/e1_new_metrics_run.json),
 [`e1_noise_rerun`](baselines/e1_noise_rerun.json); 2 E4: [`e4_rows_parser`](baselines/e4_rows_parser.json),
-[`baseline`](baselines/baseline.json)) give each metric's run-to-run noise. Three findings:
+[`e4_rerun_dup_rule`](baselines/e4_rerun_dup_rule.json)) give each metric's run-to-run noise. Three findings:
 
 - **Retrieval metrics are exactly repeatable** (σ = 0), so any change is real and tolerance is 0.
 - **The generator isn't deterministic**: `gpt-4o-mini` at temperature 0 changed one numeric answer
@@ -228,7 +228,7 @@ and page-level retrieval held steady. Of the two lost filings:
 sometimes outrank the 10-K for full-year questions. Hence the contextual-recall drop, and a
 candidate follow-up: prefer 10-Ks for full-year questions.
 
-E4 is now [`baseline.json`](baselines/baseline.json).
+E4 became the baseline (re-run under the duplicate-evidence rule: [`e4_rerun_dup_rule.json`](baselines/e4_rerun_dup_rule.json)).
 
 ### Eval fix: duplicate evidence pages count as hits
 
@@ -261,3 +261,49 @@ snapshot exactly:
 experiment. Under it E4's page hit rate beats E1 (0.617 vs 0.596), and its one remaining lost
 filing (J&J) is a real miss. The E4 baseline was re-run under the new rule and compares PASS
 against the original E4 run.
+
+### E5: one chunk per page. Accepted.
+
+With the rows parser a table row stays on one line, but a financial statement runs 3,000 to 5,000
+characters, so 1000-character chunks cut most rows off from the year header
+(`(Millions) | 2018 | 2017 | 2016`). E5 keeps each page whole: 3,000 characters at the median, 10,100
+at most, well inside the embedding limit, and one-to-one with FinanceBench's page labels. Top-k stays
+at 5. Snapshot: [`e5_page_chunks.json`](baselines/e5_page_chunks.json).
+
+| Metric | E4 | E5 | |
+|---|---|---|---|
+| **numeric match (pipeline)** | 2/7 | **6/7** | improved: +4 questions, noise limit is 1 |
+| **correctness** | 0.433 | **0.469** | improved, about 6σ |
+| contextual recall | 0.780 | 0.809 | improved |
+| contextual relevancy | 0.225 | 0.254 | improved |
+| doc hit@5 | 0.915 | 0.936 | improved |
+| hit@5 | 0.617 | 0.553 | regressed (3 gained, 6 lost) |
+| MRR | 0.390 | 0.367 | regressed |
+
+**Verdict: REVIEW, accepted.** The pipeline's numeric match now equals the generator's own score
+on gold pages (6/7). Phase 1's gap (generator 3/3, pipeline 0/3) is largely closed for this
+question type. The cost is retrieval precision: one embedding per page blurs several topics, so the
+exact gold page drops out of the top 5 more often. But whole pages give the generator complete
+tables, and every end-to-end metric rose.
+
+Caveats: only 7 numeric questions (Phase 3's 105 dev questions test this at scale), and about 3x the
+generator input per question, to be measured when the operational evals are ported. With answers
+now close to the generator's ceiling, **retrieval is the weaker link again**, and a reranker on
+whole, properly parsed pages is worth retrying in Phase 3. E3 failed on flattened tables.
+
+E5 is now [`baseline.json`](baselines/baseline.json).
+
+### Phase 2 summary (47 dev questions)
+
+| | hit@5 | doc hit@5 | correctness | numeric match | verdict |
+|---|---|---|---|---|---|
+| naive | 0.28 | 0.55 | 0.25 | 2/7 | |
+| E1 metadata filters | 0.60 | 0.94 | 0.39 | 3/7 | ✅ |
+| E2 + BM25 hybrid | 0.38 | 0.94 | 0.35 | 2/7 | ❌ |
+| E3 + MiniLM reranker | 0.38 | 0.91 | 0.32 | 2/7 | ❌ |
+| E4 rows parser | 0.62 | 0.91 | 0.43 | 3/7 | ✅ |
+| **E5 page chunks** | 0.55 | **0.94** | **0.47** | **6/7** | ✅ |
+
+hit@5 and doc hit use the duplicate-evidence rule throughout. Correctness went from **0.25 to 0.47**
+and numeric match from **2/7 to 6/7**. Two of the five experiments were rejected, each with a
+diagnosed cause.
