@@ -13,8 +13,17 @@ with transcripts:
      chunk, so later experiments (E1) can filter on them.
 
 Chunks are split WITHIN a page, never across pages, so each chunk has exactly
-one page. Parsed pages are cached to cache/pages/ (git-ignored), so changing
-the chunking (E5) re-chunks in seconds instead of re-parsing hundreds of PDFs.
+one page. Parsed pages are cached per parser (git-ignored), so changing the
+chunking (E5) re-chunks in seconds instead of re-parsing hundreds of PDFs.
+
+PARSERS (config.PARSER):
+  "text"  PyMuPDF's plain get_text(). Tables come out flattened: each number on
+          its own line, cut off from its row label.
+  "rows"  (E4) rebuild each visual line from word positions; wide horizontal
+          gaps become " | ". A table row stays one line:
+              Purchases of property, plant and equipment (PP&E) | (1,577) | (1,373)
+          Prose is unaffected. ~3 ms/page, no extra dependency. Limitation:
+          multi-column page layouts get their columns merged into one row.
 
     uv run python -m src.ingest     -> parse + chunk the active phase, print stats
 """
@@ -31,7 +40,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src import config
 from src.fetch_data import CACHE, company_key, fetch, pdfs_for_phase
 
-PAGE_CACHE = Path("cache/pages")
+PAGE_CACHE = {"text": Path("cache/pages"), "rows": Path("cache/pages_rows")}
+
+ROW_Y_TOL = 3.0   # pt: words whose vertical centres differ less than this share a line
+COL_GAP = 8.0     # pt: a horizontal gap wider than this between words is a column break
 DOC_INFO = CACHE / "data/financebench_document_information.jsonl"
 
 
@@ -66,13 +78,41 @@ def doc_metadata(doc_name, info):
 
 
 # 2. PARSE ---- PDF -> list of page texts (cached as JSON per document)
-def parse_pdf(pdf_path):
-    cached = PAGE_CACHE / f"{pdf_path.stem}.json"
+def page_rows(page):
+    """E4: one line per visual row, " | " between columns."""
+    words = page.get_text("words")              # (x0, y0, x1, y1, word, ...)
+    words.sort(key=lambda w: ((w[1] + w[3]) / 2, w[0]))
+    rows, row, row_y = [], [], None
+    for w in words:
+        y = (w[1] + w[3]) / 2
+        if row and abs(y - row_y) > ROW_Y_TOL:
+            rows.append(row)
+            row = []
+        if not row:
+            row_y = y
+        row.append(w)
+    if row:
+        rows.append(row)
+
+    lines = []
+    for row in rows:
+        row.sort(key=lambda w: w[0])
+        line = row[0][4]
+        for prev, w in zip(row, row[1:], strict=False):
+            line += (" | " if w[0] - prev[2] > COL_GAP else " ") + w[4]
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def parse_pdf(pdf_path, parser=None):
+    parser = parser or config.PARSER
+    cache_dir = PAGE_CACHE[parser]
+    cached = cache_dir / f"{pdf_path.stem}.json"
     if cached.exists():
         return json.loads(cached.read_text(encoding="utf-8"))
     with pymupdf.open(pdf_path) as pdf:
-        pages = [page.get_text() for page in pdf]
-    PAGE_CACHE.mkdir(parents=True, exist_ok=True)
+        pages = [page_rows(p) if parser == "rows" else p.get_text() for p in pdf]
+    cache_dir.mkdir(parents=True, exist_ok=True)
     cached.write_text(json.dumps(pages), encoding="utf-8")
     return pages
 
