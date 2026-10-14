@@ -63,6 +63,8 @@ def prepare():
         answer = rag.invoke(g["question"])["answer"]
         rows.append({"n": i, "id": g["id"], "question_type": g["question_type"],
                      "question": g["question"], "expert_answer": g["ideal_answer"],
+                     # FinanceBench's own reasoning: ground truth, not the judge
+                     "expert_justification": (g["justification"] or "").strip(),
                      "model_answer": answer})
         cases.append(LLMTestCase(name=g["id"], input=g["question"], actual_output=answer,
                                  expected_output=g["ideal_answer"]))
@@ -87,7 +89,8 @@ def prepare():
     # utf-8-sig so Excel shows apostrophes and currency symbols correctly
     with SHEET.open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=["n", "id", "question_type", "question",
-                                          "expert_answer", "model_answer", "correct", "note"])
+                                          "expert_answer", "expert_justification",
+                                          "model_answer", "correct", "note"])
         w.writeheader()
         for r in rows:
             w.writerow({**r, "correct": "", "note": ""})
