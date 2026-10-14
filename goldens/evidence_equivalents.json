@@ -1,0 +1,71 @@
+{
+  "threshold": 0.8,
+  "shingle": 5,
+  "covered_companies": [
+    "3M",
+    "AMCOR",
+    "AMD",
+    "AMERICANEXPRESS",
+    "BESTBUY",
+    "JOHNSON",
+    "MGMRESORTS",
+    "PEPSICO"
+  ],
+  "equivalents": {
+    "financebench_id_01935": [
+      {
+        "doc_name": "AMCOR_2022_8K_2022-07-01",
+        "page": 1,
+        "of": {
+          "doc_name": "AMCOR_2022_8K_dated-2022-07-01",
+          "page": 1
+        },
+        "similarity": 1.0
+      }
+    ],
+    "financebench_id_00222": [
+      {
+        "doc_name": "AMD_2022_annualreport",
+        "page": 65,
+        "of": {
+          "doc_name": "AMD_2022_10K",
+          "page": 55
+        },
+        "similarity": 0.983
+      }
+    ],
+    "financebench_id_00995": [
+      {
+        "doc_name": "AMD_2022_annualreport",
+        "page": 8,
+        "of": {
+          "doc_name": "AMD_2022_10K",
+          "page": 3
+        },
+        "similarity": 0.995
+      }
+    ],
+    "financebench_id_01198": [
+      {
+        "doc_name": "AMD_2022_annualreport",
+        "page": 50,
+        "of": {
+          "doc_name": "AMD_2022_10K",
+          "page": 42
+        },
+        "similarity": 0.851
+      }
+    ],
+    "financebench_id_00917": [
+      {
+        "doc_name": "AMD_2022_annualreport",
+        "page": 50,
+        "of": {
+          "doc_name": "AMD_2022_10K",
+          "page": 42
+        },
+        "similarity": 0.851
+      }
+    ]
+  }
+}

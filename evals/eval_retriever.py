@@ -12,6 +12,10 @@ Two kinds of metric, side by side:
                   filing, wrong page"
   These are exact, free, and identical run to run.
 
+  DUPLICATE EVIDENCE: a page that is a near-copy of a gold page, in another
+  filing for the same company and period (AMD's annual report is its 10-K
+  repackaged), counts as a hit. goldens/build_equivalents.py measures these.
+
   E1 DIAGNOSTIC (filtered retriever only):
     filter_accuracy  does the first filter tried (company + latest year read off
                      the question) target the gold filing's company and year?
@@ -24,6 +28,9 @@ Two kinds of metric, side by side:
 
     uv run python -m evals.eval_retriever
 """
+
+import json
+from pathlib import Path
 
 from deepeval import evaluate
 from deepeval.metrics import ContextualRecallMetric
@@ -43,12 +50,24 @@ from src.query_filters import extract_filters
 from src.retriever import build_retriever
 
 THRESHOLD = 0.7
+EQUIVALENTS = Path("goldens/evidence_equivalents.json")
 
 
-def rank_scores(retrieved, expected):
-    """(hit, reciprocal_rank, doc_hit) for one question."""
-    pages = {(e["doc_name"], e["page"]) for e in expected}
-    docs = {e["doc_name"] for e in expected}
+def load_equivalents():
+    """question id -> [{doc_name, page}] of same-period copies of its gold pages."""
+    if not EQUIVALENTS.exists():
+        return {}
+    data = json.loads(EQUIVALENTS.read_text(encoding="utf-8"))
+    return {qid: [{"doc_name": e["doc_name"], "page": e["page"]} for e in items]
+            for qid, items in data["equivalents"].items()}
+
+
+def rank_scores(retrieved, expected, equivalents=()):
+    """(hit, reciprocal_rank, doc_hit) for one question. A retrieved chunk counts
+    if it comes from an expected page or a measured copy of one."""
+    targets = list(expected) + list(equivalents)
+    pages = {(e["doc_name"], e["page"]) for e in targets}
+    docs = {e["doc_name"] for e in targets}
     rr = 0.0
     for rank, d in enumerate(retrieved, 1):
         if (d.metadata["doc_name"], d.metadata["page"]) in pages:
@@ -71,12 +90,14 @@ def run(retriever):
 
     use_filters = config.RETRIEVER in ("filtered", "hybrid", "rerank")
     info = load_doc_info()
+    equivalents = load_equivalents()
 
     hits, rrs, doc_hits, filter_ok, test_cases = [], [], [], [], []
     for g in goldens:
         retrieved = retriever.invoke(g["question"])
 
-        hit, rr, doc_hit = rank_scores(retrieved, g["expected_evidence"])
+        hit, rr, doc_hit = rank_scores(retrieved, g["expected_evidence"],
+                                       equivalents.get(g["id"], ()))
         hits.append(hit)
         rrs.append(rr)
         doc_hits.append(doc_hit)

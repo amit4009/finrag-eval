@@ -88,3 +88,19 @@ def test_is_abstention():
     assert is_abstention(ABSTAIN)
     assert is_abstention("I don’t have enough information in the provided filings to answer that")
     assert not is_abstention("PepsiCo's FY2021 capex was $4.6 billion [PEPSICO_2021_10K p.62].")
+
+
+# ---- duplicate evidence in hit@k ----
+
+def _doc(name, page):
+    from types import SimpleNamespace
+    return SimpleNamespace(metadata={"doc_name": name, "page": page})
+
+
+def test_duplicate_evidence_page_counts_as_hit():
+    from evals.eval_retriever import rank_scores
+    expected = [{"doc_name": "AMD_2022_10K", "page": 3}]
+    copies = [{"doc_name": "AMD_2022_annualreport", "page": 8}]
+    retrieved = [_doc("AMD_2022_annualreport", 10), _doc("AMD_2022_annualreport", 8)]
+    assert rank_scores(retrieved, expected) == (0.0, 0.0, 0.0)          # old rule: miss
+    assert rank_scores(retrieved, expected, copies) == (1.0, 0.5, 1.0)  # copy at rank 2
