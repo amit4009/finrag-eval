@@ -96,8 +96,10 @@ def numeric_match(answer, ideal, question=""):
     gold_abs = gold * q_scale
 
     for value, scale, is_pct in parse_numbers(answer):
-        # 1. as written, in the question's unit ("4.6" vs "$4.60")
-        if scale == 1.0 and is_pct == gold_pct and _close(value, gold, tol):
+        # 1. as written, in the question's unit ("4.6" vs "$4.60"). The % sign is
+        #    not required to agree: the same digits with a stray "%" are a unit
+        #    slip, not a different answer (Amazon DPO, in days: "93.64 %")
+        if scale == 1.0 and _close(value, gold, tol):
             return True
         # 2. scaled to absolute dollars ("$4,625 million" vs 4.60 billions)
         if scale != 1.0 and _close(value * scale, gold_abs, tol * q_scale):

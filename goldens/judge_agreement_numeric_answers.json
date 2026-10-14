@@ -1,0 +1,117 @@
+{
+  "config": {
+    "phase": "phase3",
+    "split": "dev",
+    "parser": "rows",
+    "chunking": "page",
+    "embedding_model": "text-embedding-3-large",
+    "retriever": "filtered",
+    "top_k": 5,
+    "generator_model": "gpt-4o-mini",
+    "judge_model": "gpt-4o-mini"
+  },
+  "answers": [
+    {
+      "id": "financebench_id_03471",
+      "model_answer": "To calculate General Mills's FY2020 working capital ratio, we need the values for total current assets and total current liabilities from the statement of financial position.\n\n1. **Total Current Assets (FY2020)**: $5,121.3 million [GENERALMILLS_2020_10K p.49]\n2. **Total Current Liabilities (FY2020)**: $7,491.5 million [GENERALMILLS_2020_10K p.49]\n\nNow, we can calculate the working capital ratio using the formula:\n\n\\[\n\\text{Working Capital Ratio} = \\frac{\\text{Total Current Assets}}{\\text{Total Current Liabilities}}\n\\]\n\nSubstituting the values:\n\n\\[\n\\text{Working Capital Ratio} = \\frac{5,121.3}{7,491.5}\n\\]\n\nCalculating the ratio:\n\n\\[\n\\text{Working Capital Ratio} \\approx 0.682\n\\]\n\nRounding to two decimal places:\n\n\\[\n\\text{Working Capital Ratio} \\approx 0.68\n\\]\n\nFinal answer: 0.68",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_10499",
+      "model_answer": "To calculate Kraft Heinz's FY2019 inventory turnover ratio, we need the following figures:\n\n1. **Cost of Goods Sold (COGS) for FY2019**: This is found in the Consolidated Statements of Income.\n   - COGS = $16,830 million [KRAFTHEINZ_2019_10K p.49]\n\n2. **Average Inventory for FY2019**: This is calculated using the inventory values at the end of FY2018 and FY2019 from the Consolidated Balance Sheets.\n   - Inventory at December 28, 2019 = $2,721 million [KRAFTHEINZ_2019_10K p.51]\n   - Inventory at December 29, 2018 = $2,667 million [KRAFTHEINZ_2019_10K p.51]\n   - Average Inventory = (Inventory at end of FY2019 + Inventory at end of FY2018) / 2\n   - Average Inventory = ($2,721 million + $2,667 million) / 2\n   - Average Inventory = $5,388 million / 2\n   - Average Inventory = $2,694 million\n\nNow, we can calculate the inventory turnover ratio:\n\n\\[\n\\text{Inventory Turnover Ratio} = \\frac{\\text{COGS}}{\\text{Average Inventory}} = \\frac{16,830}{2,694}\n\\]\n\nCalculating this gives:\n\n\\[\n\\text{Inventory Turnover Ratio} \\approx 6.24\n\\]\n\nRounding to two decimal places, we have:\n\nFinal answer: 6.24",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_04103",
+      "model_answer": "To calculate the cash conversion cycle (CCC) for General Mills for FY2019, we need to determine the values for Days Inventory Outstanding (DIO), Days Sales Outstanding (DSO), and Days Payable Outstanding (DPO) using the provided definitions.\n\n### Step 1: Calculate DIO\n**DIO = 365 * (Average Inventory) / (FY2019 COGS)**\n\n1. **FY2019 COGS**: $11,108.4 million [GENERALMILLS_2019_10K p.52]\n2. **Average Inventory**: \n   - FY2018 Inventory: Not provided directly, but we can infer it from the balance sheet data.\n   - FY2019 Inventory: Not provided directly, but we can infer it from the balance sheet data.\n   - Since we don't have the exact inventory figures for FY2018 and FY2019, we cannot calculate the average inventory.\n\n### Step 2: Calculate DSO\n**DSO = 365 * (Average Accounts Receivable) / (FY2019 Revenue)**\n\n1. **FY2019 Revenue**: $16,865.2 million [GENERALMILLS_2019_10K p.52]\n2. **Average Accounts Receivable**: \n   - FY2018 Accounts Receivable: Not provided directly.\n   - FY2019 Accounts Receivable: Not provided directly.\n   - Since we don't have the exact accounts receivable figures for FY2018 and FY2019, we cannot calculate the average accounts receivable.\n\n### Step 3: Calculate DPO\n**DPO = 365 * (Average Accounts Payable) / (FY2019 COGS + Change in Inventory)**\n\n1. **FY2019 COGS**: $11,108.4 million [GENERALMILLS_2019_10K p.52]\n2. **Change in Inventory**: \n   - FY2018 Inventory: Not provided directly.\n   - FY2019 Inventory: Not provided directly.\n   - Since we don't have the exact inventory figures for FY2018 and FY2019, we cannot calculate the change in inventory.\n3. **Average Accounts Payable**: \n   - FY2018 Accounts Payable: Not provided directly.\n   - FY2019 Accounts Payable: Not provided directly.\n   - Since we don't have the exact accounts payable figures for FY2018 and FY2019, we cannot calculate the average accounts payable.\n\n### Conclusion\nI don't have enough information in the provided filings to answer that.",
+      "numeric_match": false,
+      "numeric_match_stated": false
+    },
+    {
+      "id": "financebench_id_02608",
+      "model_answer": "To calculate the 3-year average net profit margin for Best Buy from FY2015 to FY2017, we need to find the net profit margin for each fiscal year and then average those figures.\n\n1. **Net Profit Margin Calculation**:\n   - The net profit margin is calculated as:\n     \\[\n     \\text{Net Profit Margin} = \\left( \\frac{\\text{Net Earnings}}{\\text{Revenue}} \\right) \\times 100\n     \\]\n\n2. **Figures for Each Year**:\n   - **FY2015**:\n     - Net Earnings: $1,233 million [BESTBUY_2017_10K p.55]\n     - Revenue: $40,339 million [BESTBUY_2017_10K p.55]\n     - Net Profit Margin for FY2015:\n       \\[\n       \\text{Net Profit Margin}_{2015} = \\left( \\frac{1,233}{40,339} \\right) \\times 100 \\approx 3.1\\%\n       \\]\n\n   - **FY2016**:\n     - Net Earnings: $897 million [BESTBUY_2017_10K p.55]\n     - Revenue: $39,528 million [BESTBUY_2017_10K p.55]\n     - Net Profit Margin for FY2016:\n       \\[\n       \\text{Net Profit Margin}_{2016} = \\left( \\frac{897}{39,528} \\right) \\times 100 \\approx 2.3\\%\n       \\]\n\n   - **FY2017**:\n     - Net Earnings: $1,228 million [BESTBUY_2017_10K p.55]\n     - Revenue: $39,403 million [BESTBUY_2017_10K p.55]\n     - Net Profit Margin for FY2017:\n       \\[\n       \\text{Net Profit Margin}_{2017} = \\left( \\frac{1,228}{39,403} \\right) \\times 100 \\approx 3.1\\%\n       \\]\n\n3. **Average Net Profit Margin**:\n   - Now, we calculate the average of the net profit margins for FY2015, FY2016, and FY2017:\n   \\[\n   \\text{Average Net Profit Margin} = \\frac{3.1 + 2.3 + 3.1}{3} = \\frac{8.5}{3} \\approx 2.8\\%\n   \\]\n\n4. **Final Answer**:\n   - Rounding to one decimal place, the average net profit margin for Best Buy from FY2015 to FY2017 is:\n   \nFinal answer: 2.8%",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_04735",
+      "model_answer": "To calculate the FY2015 operating cash flow ratio for Adobe, we need the following figures:\n\n1. **Cash from operations (Net cash provided by operating activities)** for FY2015: \n   - Value: $1,469.5 million [ADOBE_2015_10K p.50]\n\n2. **Total current liabilities** as of November 27, 2015:\n   - Value: $2,213.6 million [ADOBE_2015_10K p.58]\n\nNow, we can calculate the operating cash flow ratio using the formula:\n\n\\[\n\\text{Operating Cash Flow Ratio} = \\frac{\\text{Cash from Operations}}{\\text{Total Current Liabilities}}\n\\]\n\nSubstituting the values we have:\n\n\\[\n\\text{Operating Cash Flow Ratio} = \\frac{1,469.5 \\text{ million}}{2,213.6 \\text{ million}}\n\\]\n\nCalculating the ratio:\n\n\\[\n\\text{Operating Cash Flow Ratio} = 0.663\n\\]\n\nRounding to two decimal places:\n\n\\[\n\\text{Operating Cash Flow Ratio} \\approx 0.66\n\\]\n\nFinal answer: 0.66",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_03718",
+      "model_answer": "To calculate the 2-year total revenue CAGR (Compound Annual Growth Rate) from FY2020 to FY2022 for Lockheed Martin, we need the total revenue figures for FY2020 and FY2022.\n\n1. **Identify the total revenue figures:**\n   - Total net sales for FY2020: **$65,398 million** [LOCKHEEDMARTIN_2022_10K p.62]\n   - Total net sales for FY2022: **$65,984 million** [LOCKHEEDMARTIN_2022_10K p.62]\n\n2. **Use the CAGR formula:**\n   \\[\n   \\text{CAGR} = \\left( \\frac{\\text{Ending Value}}{\\text{Beginning Value}} \\right)^{\\frac{1}{n}} - 1\n   \\]\n   where:\n   - Ending Value = Total net sales for FY2022 = $65,984 million\n   - Beginning Value = Total net sales for FY2020 = $65,398 million\n   - \\( n \\) = number of years = 2\n\n3. **Plug in the values:**\n   \\[\n   \\text{CAGR} = \\left( \\frac{65,984}{65,398} \\right)^{\\frac{1}{2}} - 1\n   \\]\n\n4. **Calculate the ratio:**\n   \\[\n   \\frac{65,984}{65,398} \\approx 1.009\n   \\]\n\n5. **Calculate the CAGR:**\n   \\[\n   \\text{CAGR} = (1.009)^{0.5} - 1 \\approx 0.0045\n   \\]\n\n6. **Convert to percentage:**\n   \\[\n   \\text{CAGR} \\approx 0.0045 \\times 100 \\approx 0.45\\%\n   \\]\n\n7. **Round to one decimal place:**\n   \\[\n   \\text{CAGR} \\approx 0.5\\%\n   \\]\n\nFinal answer: 0.5%",
+      "numeric_match": false,
+      "numeric_match_stated": false
+    },
+    {
+      "id": "financebench_id_04412",
+      "model_answer": "To calculate Lockheed Martin's FY2020 asset turnover ratio, we need the following figures:\n\n1. **FY2020 Revenue (Total Net Sales)**: This is found in the Consolidated Statements of Earnings.\n   - Total net sales for FY2020: **65,398 million** [LOCKHEEDMARTIN_2020_10K p.66].\n\n2. **Average Total Assets**: This is calculated using the total assets at the end of FY2020 and FY2019.\n   - Total assets at the end of FY2020: **50,710 million** [LOCKHEEDMARTIN_2020_10K p.68].\n   - Total assets at the end of FY2019: **47,528 million** [LOCKHEEDMARTIN_2020_10K p.68].\n   - Average total assets = (Total assets FY2020 + Total assets FY2019) / 2\n   - Average total assets = (50,710 + 47,528) / 2 = 49,119 million.\n\nNow, we can calculate the asset turnover ratio:\n\n\\[\n\\text{Asset Turnover Ratio} = \\frac{\\text{FY2020 Revenue}}{\\text{Average Total Assets}} = \\frac{65,398}{49,119}\n\\]\n\nCalculating this gives:\n\n\\[\n\\text{Asset Turnover Ratio} \\approx 1.33\n\\]\n\nFinally, rounding to two decimal places:\n\nFinal answer: 1.33",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_03282",
+      "model_answer": "To find Netflix's total current liabilities for the year end FY2017, I will refer to the balance sheet excerpt provided.\n\n1. **Current liabilities**:\n   - Current content liabilities: $4,173,041 (in thousands) [NETFLIX_2017_10K p.44]\n   - Accounts payable: $359,555 (in thousands) [NETFLIX_2017_10K p.44]\n   - Accrued expenses: $315,094 (in thousands) [NETFLIX_2017_10K p.44]\n   - Deferred revenue: $618,622 (in thousands) [NETFLIX_2017_10K p.44]\n\n2. **Calculating total current liabilities**:\n   - Total current liabilities = Current content liabilities + Accounts payable + Accrued expenses + Deferred revenue\n   - Total current liabilities = $4,173,041 + $359,555 + $315,094 + $618,622\n\n3. **Performing the arithmetic**:\n   - $4,173,041 + $359,555 = $4,532,596\n   - $4,532,596 + $315,094 = $4,847,690\n   - $4,847,690 + $618,622 = $5,466,312\n\n4. **Converting to millions**:\n   - Total current liabilities in millions = $5,466,312 / 1,000 = $5,466.312 million\n\nFinal answer: 5466.312 million USD.",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_02981",
+      "model_answer": "To calculate the FY2019 - FY2021 3-year average unadjusted operating income % margin for Corning, we need to find the operating income and net sales for each of the three fiscal years (2019, 2020, and 2021) and then compute the operating income margin for each year.\n\n1. **Operating Income and Net Sales:**\n   - **FY2019:**\n     - Operating Income: $1,306 million [CORNING_2021_10K p.64]\n     - Net Sales: $11,503 million [CORNING_2021_10K p.64]\n   - **FY2020:**\n     - Operating Income: $509 million [CORNING_2021_10K p.64]\n     - Net Sales: $11,303 million [CORNING_2021_10K p.64]\n   - **FY2021:**\n     - Operating Income: $2,112 million [CORNING_2021_10K p.64]\n     - Net Sales: $14,082 million [CORNING_2021_10K p.64]\n\n2. **Calculating Operating Income % Margin for Each Year:**\n   - **FY2019:**\n     - Operating Income % Margin = (Operating Income / Net Sales) * 100\n     - Operating Income % Margin = ($1,306 / $11,503) * 100 = 11.4%\n   - **FY2020:**\n     - Operating Income % Margin = ($509 / $11,303) * 100 = 4.5%\n   - **FY2021:**\n     - Operating Income % Margin = ($2,112 / $14,082) * 100 = 15.0%\n\n3. **Calculating the 3-Year Average Operating Income % Margin:**\n   - Average Margin = (11.4% + 4.5% + 15.0%) / 3\n   - Average Margin = 30.9% / 3 = 10.3%\n\nFinal answer: 10.3%",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_04854",
+      "model_answer": "To calculate the FY2020 free cash flow (FCF) for General Mills, we need to find the cash from operations and capital expenditures (capex) for that fiscal year.\n\n1. **Cash from Operations**: This is found in the cash flows from operating activities.\n   - Net cash provided by operating activities for FY2020: **3,676.2 million** [GENERALMILLS_2020_10K p.51].\n\n2. **Capital Expenditures (Capex)**: This is found in the cash flows from investing activities.\n   - Purchases of land, buildings, and equipment for FY2020: **(460.8 million)** [GENERALMILLS_2020_10K p.51]. Since this is a cash outflow, we will take the absolute value for our calculation.\n\nNow, we can calculate the free cash flow (FCF):\n\n\\[\n\\text{FCF} = \\text{Cash from Operations} - \\text{Capex}\n\\]\n\\[\n\\text{FCF} = 3,676.2 - 460.8\n\\]\n\\[\n\\text{FCF} = 3,215.4 \\text{ million}\n\\]\n\nFinal answer: 3,215.4 USD millions.",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_09724",
+      "model_answer": "To calculate Coca-Cola's FY2021 Cost of Goods Sold (COGS) percentage margin, we will use the following formula:\n\n\\[ \\text{COGS % Margin} = \\left( \\frac{\\text{Cost of Goods Sold}}{\\text{Net Operating Revenues}} \\right) \\times 100 \\]\n\nNow, let's identify the figures needed from the provided excerpts:\n\n1. **Cost of Goods Sold (COGS)** for FY2021: \n   - Value: 15,357 million [COCACOLA_2021_10K p.61]\n\n2. **Net Operating Revenues** for FY2021: \n   - Value: 38,655 million [COCACOLA_2021_10K p.61]\n\nNow, we can perform the calculation step by step:\n\n1. Calculate the COGS percentage margin:\n   \\[\n   \\text{COGS % Margin} = \\left( \\frac{15,357}{38,655} \\right) \\times 100\n   \\]\n\n2. First, calculate the fraction:\n   \\[\n   \\frac{15,357}{38,655} \\approx 0.397\n   \\]\n\n3. Now, multiply by 100 to convert to percentage:\n   \\[\n   0.397 \\times 100 \\approx 39.7\n   \\]\n\nThus, Coca-Cola's FY2021 COGS % margin is approximately 39.7%.\n\nFinal answer: 39.7%",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_04660",
+      "model_answer": "To calculate Block's (formerly known as Square) FY2016 working capital ratio, we need the values for total current assets and total current liabilities from the balance sheet.\n\n1. **Total Current Assets (FY2016)**: \n   - From the balance sheet, total current assets for December 31, 2016, is $1,001,425 thousand [doc_name p.67].\n\n2. **Total Current Liabilities (FY2016)**: \n   - From the balance sheet, total current liabilities for December 31, 2016, is $577,464 thousand [doc_name p.67].\n\nNow, we can calculate the working capital ratio:\n\n\\[\n\\text{Working Capital Ratio} = \\frac{\\text{Total Current Assets}}{\\text{Total Current Liabilities}} = \\frac{1,001,425}{577,464}\n\\]\n\nCalculating the ratio:\n\n\\[\n\\text{Working Capital Ratio} = 1.733\n\\]\n\nRounding to two decimal places:\n\n\\[\n\\text{Working Capital Ratio} \\approx 1.73\n\\]\n\nFinal answer: 1.73",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_03473",
+      "model_answer": "To calculate the FY2017 return on assets (ROA) for Coca-Cola, we need the following figures:\n\n1. **Net Income for FY2017**: This is the net income attributable to shareowners of The Coca-Cola Company for the year ended December 31, 2017.\n   - Value: $1,248 million [COCACOLA_2017_10K p.73]\n\n2. **Total Assets for FY2016**: This is the total assets as of December 31, 2016.\n   - Value: $87,270 million [COCACOLA_2017_10K p.75]\n\n3. **Total Assets for FY2017**: This is the total assets as of December 31, 2017.\n   - Value: $87,896 million [COCACOLA_2017_10K p.75]\n\nNext, we calculate the average total assets between FY2016 and FY2017:\n\n\\[\n\\text{Average Total Assets} = \\frac{\\text{Total Assets FY2016} + \\text{Total Assets FY2017}}{2}\n\\]\n\nSubstituting the values:\n\n\\[\n\\text{Average Total Assets} = \\frac{87,270 + 87,896}{2} = \\frac{175,166}{2} = 87,583 \\text{ million}\n\\]\n\nNow, we can calculate the ROA using the formula:\n\n\\[\n\\text{ROA} = \\frac{\\text{Net Income}}{\\text{Average Total Assets}}\n\\]\n\nSubstituting the values:\n\n\\[\n\\text{ROA} = \\frac{1,248}{87,583}\n\\]\n\nCalculating the ROA:\n\n\\[\n\\text{ROA} \\approx 0.01425\n\\]\n\nTo express this as a percentage, we multiply by 100:\n\n\\[\n\\text{ROA} \\approx 1.425\\%\n\\]\n\nRounding to two decimal places:\n\n\\[\n\\text{ROA} \\approx 1.43\\%\n\\]\n\nFinal answer: 1.43%",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_03620",
+      "model_answer": "To calculate the FY2022 unadjusted EBITDA less capex for PepsiCo, we will follow these steps:\n\n1. **Identify Unadjusted Operating Income**: This is found in the Consolidated Statement of Income.\n   - Operating Profit for FY2022: **$11,512 million** [PEPSICO_2022Q4_EARNINGS p.8].\n\n2. **Identify Depreciation and Amortization**: This is found in the Consolidated Statement of Cash Flows.\n   - Depreciation and Amortization for FY2022: **$2,763 million** [PEPSICO_2022_10K p.63].\n\n3. **Calculate Unadjusted EBITDA**:\n   \\[\n   \\text{Unadjusted EBITDA} = \\text{Operating Profit} + \\text{Depreciation and Amortization}\n   \\]\n   \\[\n   \\text{Unadjusted EBITDA} = 11,512 + 2,763 = 14,275 \\text{ million}\n   \\]\n\n4. **Identify Capital Expenditures (Capex)**: This is also found in the Consolidated Statement of Cash Flows.\n   - Capital Spending for FY2022: **$5,207 million** [PEPSICO_2022_10K p.63].\n\n5. **Calculate Unadjusted EBITDA less Capex**:\n   \\[\n   \\text{Unadjusted EBITDA less Capex} = \\text{Unadjusted EBITDA} - \\text{Capex}\n   \\]\n   \\[\n   \\text{Unadjusted EBITDA less Capex} = 14,275 - 5,207 = 9,068 \\text{ million}\n   \\]\n\nFinal answer: 9,068 USD millions.",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_06655",
+      "model_answer": "To calculate Amazon's FY2017 days payable outstanding (DPO), we need to follow the formula provided:\n\n\\[ \\text{DPO} = 365 \\times \\left( \\frac{\\text{Average Accounts Payable}}{\\text{FY2017 COGS} + \\text{Change in Inventory}} \\right) \\]\n\n### Step 1: Calculate Average Accounts Payable\n- Accounts Payable as of December 31, 2016: $25,309 million [AMAZON_2017_10K p.39]\n- Accounts Payable as of December 31, 2017: $34,616 million [AMAZON_2017_10K p.39]\n\nAverage Accounts Payable:\n\\[\n\\text{Average Accounts Payable} = \\frac{25,309 + 34,616}{2} = \\frac{59,925}{2} = 29,962.5 \\text{ million}\n\\]\n\n### Step 2: Calculate FY2017 COGS\n- FY2017 Cost of Sales (COGS): $111,934 million [AMAZON_2017_10K p.26]\n\n### Step 3: Calculate Change in Inventory\n- Inventory as of December 31, 2016: $11,461 million [AMAZON_2017_10K p.39]\n- Inventory as of December 31, 2017: $16,047 million [AMAZON_2017_10K p.39]\n\nChange in Inventory:\n\\[\n\\text{Change in Inventory} = 16,047 - 11,461 = 4,586 \\text{ million}\n\\]\n\n### Step 4: Calculate the Denominator (FY2017 COGS + Change in Inventory)\n\\[\n\\text{Denominator} = 111,934 + 4,586 = 116,520 \\text{ million}\n\\]\n\n### Step 5: Calculate DPO\n\\[\n\\text{DPO} = 365 \\times \\left( \\frac{29,962.5}{116,520} \\right)\n\\]\nCalculating the fraction:\n\\[\n\\frac{29,962.5}{116,520} \\approx 0.256\n\\]\nNow, calculating DPO:\n\\[\n\\text{DPO} = 365 \\times 0.256 \\approx 93.64\n\\]\n\nFinal answer: 93.64 %",
+      "numeric_match": false,
+      "numeric_match_stated": false
+    },
+    {
+      "id": "financebench_id_08286",
+      "model_answer": "To find Amazon's FY2019 net income attributable to shareholders, we will refer to the consolidated statements of operations.\n\n1. **Net Income for FY2019**: The net income for the year ended December 31, 2019, is reported as $11,588 million [AMAZON_2019_10K p.37].\n\nSince the question specifically asks for the net income attributable to shareholders, and the provided figure is already the net income, we can conclude that this is the amount we need.\n\nFinal answer: 11,588 USD millions",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    },
+    {
+      "id": "financebench_id_04784",
+      "model_answer": "To calculate the change in unadjusted operating income percentage margin for Walmart from FY2018 to FY2019, we need the operating income and net sales figures for both fiscal years.\n\n1. **Operating Income for FY2019**: \n   - $21,957 million [WALMART_2019_10K p.47]\n\n2. **Net Sales for FY2019**: \n   - $510,329 million [WALMART_2019_10K p.47]\n\n3. **Operating Income for FY2018**: \n   - $20,437 million [WALMART_2019_10K p.47]\n\n4. **Net Sales for FY2018**: \n   - $495,761 million [WALMART_2019_10K p.47]\n\nNow, we calculate the operating income percentage margin for both fiscal years:\n\n**Operating Income Margin for FY2019**:\n\\[\n\\text{Operating Income Margin FY2019} = \\left( \\frac{\\text{Operating Income FY2019}}{\\text{Net Sales FY2019}} \\right) \\times 100\n\\]\n\\[\n= \\left( \\frac{21,957}{510,329} \\right) \\times 100 \\approx 4.3\\%\n\\]\n\n**Operating Income Margin for FY2018**:\n\\[\n\\text{Operating Income Margin FY2018} = \\left( \\frac{\\text{Operating Income FY2018}}{\\text{Net Sales FY2018}} \\right) \\times 100\n\\]\n\\[\n= \\left( \\frac{20,437}{495,761} \\right) \\times 100 \\approx 4.1\\%\n\\]\n\nNext, we calculate the change in the operating income percentage margin from FY2018 to FY2019:\n\\[\n\\text{Change in Operating Income Margin} = \\text{Operating Income Margin FY2019} - \\text{Operating Income Margin FY2018}\n\\]\n\\[\n= 4.3\\% - 4.1\\% = 0.2\\%\n\\]\n\nFinal answer: 0.2%",
+      "numeric_match": true,
+      "numeric_match_stated": true
+    }
+  ]
+}

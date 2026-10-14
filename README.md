@@ -415,6 +415,19 @@ expert answer, FinanceBench's justification and the model's answer. Labels:
   rejected: it picked the wrong number in 4 of the 17 labeled answers above. For pre-E6 answers
   with no such line, it falls back to the lenient check, because their conclusion has no fixed
   position.
+- **Second labeling round:** the 17 numeric questions re-answered with the E6 prompt and labeled
+  the same way ([`judge_labels_numeric.csv`](goldens/judge_labels_numeric.csv),
+  [`judge_agreement_numeric.json`](baselines/judge_agreement_numeric.json)). Strict and lenient
+  matchers agree on every E6 answer, because the stated conclusion and the working no longer
+  disagree. Both disagreed with the human on one row: Amazon DPO (measured in days) answered
+  `93.64 %`, right number with a stray percent sign. The matcher now treats matching digits with a
+  mismatched `%` as a unit slip. It was re-checked on both rounds (34 labeled answers): **no new
+  false passes**, κ 0.77 on round 1 (unchanged) and 1.00 on round 2. Round 2's 1.00 is not
+  independent evidence, since that row prompted the fix.
+- **First use of the per-question records:** the fix changes one baseline answer's score, so
+  `baseline.json` was re-scored from its saved answers, not re-run (pipeline numeric match
+  27/35 → 28/35, recorded in its metadata). Without the records this would have needed a full
+  paid re-run.
 
 ### E6: work first, state the final answer last. Accepted (PASS).
 

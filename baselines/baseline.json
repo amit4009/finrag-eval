@@ -18,6 +18,20 @@
     "label": "E6 re-run: strict numeric match + per-question records",
     "n_metrics": 93,
     "prompt_hash": "244e177297a9",
+    "rescored": {
+      "code_before_commit": "e05f833",
+      "correct_before_after": {
+        "application.numeric_match_stated": [
+          27,
+          28
+        ],
+        "generator.numeric_match_stated": [
+          31,
+          31
+        ]
+      },
+      "what": "numeric_match_stated re-scored from baselines/answers/baseline.json after the stray-% unit-slip fix (no re-run)"
+    },
     "suite_seconds": 1448.3
   },
   "metrics": {
@@ -32,11 +46,11 @@
     "application.numeric_match.min_score": 0.0,
     "application.numeric_match.n": 35,
     "application.numeric_match.pass_rate": 77.14285714285714,
-    "application.numeric_match_stated.avg_score": 0.7714285714285715,
+    "application.numeric_match_stated.avg_score": 0.8,
     "application.numeric_match_stated.max_score": 1.0,
     "application.numeric_match_stated.min_score": 0.0,
     "application.numeric_match_stated.n": 35,
-    "application.numeric_match_stated.pass_rate": 77.14285714285714,
+    "application.numeric_match_stated.pass_rate": 80.0,
     "generator.answer_relevancy.avg_score": 0.8329379003063213,
     "generator.answer_relevancy.max_score": 1.0,
     "generator.answer_relevancy.min_score": 0.0,

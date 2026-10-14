@@ -70,3 +70,10 @@ def test_without_final_line_strict_falls_back_to_lenient():
     a = "DPO is 36.73 days. Working: 365 * 0.256 = 93.64."
     assert stated_answer(a) is None
     assert numeric_match_stated(a, "93.86", DPO_Q) == numeric_match(a, "93.86", DPO_Q)
+
+
+def test_stray_percent_sign_is_a_unit_slip_not_a_wrong_answer():
+    # human-labelled correct: DPO is in days, the model wrote "93.64 %"
+    assert numeric_match_stated("Final answer: 93.64 %", "93.86", DPO_Q)
+    # but a genuinely different number with a % is still wrong
+    assert not numeric_match_stated("Final answer: 36.73 %", "93.86", DPO_Q)
