@@ -113,6 +113,9 @@ RETRIEVERS = {"vector": VectorRetriever, "filtered": FilteredRetriever,
 
 
 def build_retriever():
+    if config.RETRIEVER == "llm_rerank":
+        from src.llm_reranker import LLMRerankRetriever  # here: it imports this module
+        return LLMRerankRetriever(load_store(), config.TOP_K)
     if config.RETRIEVER == "rerank":
         from src.reranker import (
             RerankingRetriever,  # here: reranker imports this module

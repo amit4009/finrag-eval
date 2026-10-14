@@ -31,12 +31,15 @@ EMBEDDING_MODEL = "text-embedding-3-large"
 # retrieval
 RETRIEVER = "filtered"        # "vector" (naive) | "filtered" (E1: company + year filters)
                               # | "hybrid" (E2: E1 + BM25, fused with RRF; rejected)
-                              # | "rerank" (E3: E1 + cross-encoder reranking)
+                              # | "rerank" (E3: E1 + cross-encoder reranking; rejected)
+                              # | "llm_rerank" (E7: E1 + gpt-4o-mini reranks 20 pages)
 TOP_K = 5
 HYBRID_FETCH_K = 20           # E2: candidates from EACH of vector and BM25 before fusion
 RRF_K = 60                    # E2: reciprocal rank fusion constant (the standard default)
 RERANK_FETCH_K = 20           # E3: filtered vector candidates the cross-encoder re-scores
 RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+RERANK_MODEL = "gpt-4o-mini"   # E7: LLM reranker (reranks RERANK_FETCH_K candidates)
+RERANK_EXCERPT_CHARS = 2000   # E7: how much of each candidate page the reranker sees
 
 # generation + judging (one judge model everywhere, unlike the tutorial)
 GENERATOR_MODEL = "gpt-4o-mini"
@@ -69,6 +72,8 @@ def as_dict():
         **({"hybrid_fetch_k": HYBRID_FETCH_K, "rrf_k": RRF_K} if RETRIEVER == "hybrid" else {}),
         **({"rerank_fetch_k": RERANK_FETCH_K, "reranker_model": RERANKER_MODEL}
            if RETRIEVER == "rerank" else {}),
+        **({"rerank_fetch_k": RERANK_FETCH_K, "rerank_model": RERANK_MODEL,
+            "rerank_excerpt_chars": RERANK_EXCERPT_CHARS} if RETRIEVER == "llm_rerank" else {}),
         "generator_model": GENERATOR_MODEL,
         "judge_model": JUDGE_MODEL,
     }
