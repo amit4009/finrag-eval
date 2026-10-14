@@ -54,22 +54,38 @@ GATE_HIGHER_AVG = {"direction": "higher", "kind": "gate",      "tol": 0.02, "rel
 GATE_LOWER_AVG  = {"direction": "lower",  "kind": "gate",      "tol": 0.02, "rel_tol": 0.0}   # toxicity
 QUALITY_GUARD   = {"direction": "higher", "kind": "guardrail", "tol": 0.05, "rel_tol": 0.0}   # quality
 
-# FinanceBench recalibration (Phase 2, 47 dev questions; phase{1,2}_noise_rerun.json).
-# Two runs of the identical pipeline showed three distinct noise levels:
-#   - judge averages moved up to 0.040 at n=47 (0.052 at n=11). QUALITY_GUARD's
-#     0.05 holds at Phase 2 size and up.
-#   - retrieval metrics (hit@k, MRR, doc hit, filter accuracy) moved by EXACTLY 0:
-#     no LLM is involved, so any change is real. Tolerance 0 -- at n=47, 0.05
-#     would hide a two-question retrieval loss.
-#   - per-question 0/1 metrics downstream of the generator moved by one question
-#     (numeric match 6/7 -> 5/7): gpt-4o-mini at temperature 0 is not
-#     deterministic. One question's worth is noise.
+# FinanceBench recalibration, Phase 2 (47 dev questions). Five snapshots of
+# identical pipelines -- 2 naive, 3 E1 -- measured by `python -m evals.noise`
+# (pooled within-group sigma; tol = 2.77 sigma rounded up, floor 0.03):
+#   - retrieval metrics (hit@k, MRR, doc hit, filter accuracy): sigma exactly 0.
+#     No LLM involved, so any change is real -> tolerance 0. (0.05 would hide a
+#     two-question retrieval loss at n=47.)
+#   - numeric match: moved by at most one question (gpt-4o-mini at temperature 0
+#     is not deterministic) -> one question's worth, 1/n.
+#   - judge averages: noise differs ~3x by metric, so one shared 0.05 was too
+#     loose for some and too tight for others -> per-metric MEASURED_TOL below.
+#     (A first estimate from ONE pair of runs said 0.05 was enough; the second
+#     pair disproved it. Recalibrate with evals.noise as runs accumulate.)
 EXACT_GUARD     = {"direction": "higher", "kind": "guardrail", "tol": 0.0, "rel_tol": 0.0}
 ONE_FLIP_GUARD  = {"direction": "higher", "kind": "guardrail", "tol": 0.0, "rel_tol": 0.0, "questions": 1}
 
 EXACT_RETRIEVAL = ("retriever.hit_at_", "retriever.mrr.", "retriever.doc_hit_at_",
                    "retriever.filter_accuracy.")
-GENERATOR_FLIPS = (".numeric_match.", "pipeline.answer_rate.")
+GENERATOR_FLIPS = (".numeric_match.",)
+
+#                                                  tol    sigma   df
+MEASURED_TOL = {
+    "application.correctness_[geval].avg_score":  0.03,  # 0.007   3
+    "retriever.contextual_recall.avg_score":      0.03,  # 0.009   3
+    "pipeline.contextual_relevancy.avg_score":    0.03,  # 0.007   3
+    "pipeline.answer_relevancy.avg_score":        0.06,  # 0.018   3
+    "generator.answer_relevancy.avg_score":       0.07,  # 0.024   3
+    "generator.faithfulness.avg_score":           0.07,  # 0.024   3
+    # provisional: one pair of runs only (df=1); both move with the set of
+    # questions the model chooses to answer
+    "pipeline.faithfulness_attempted.avg_score":  0.12,  # 0.040   1
+    "pipeline.answer_rate.avg_score":             0.09,  # 0.030   1
+}
 
 # Operational metrics -- direct measurements, unchanged.
 LATENCY_GUARD   = {"direction": "lower",  "kind": "guardrail", "tol": 0.0, "rel_tol": 0.25}   # 25%
@@ -107,6 +123,8 @@ def rule_for(metric_id):
             return EXACT_GUARD
         if any(part in mid for part in GENERATOR_FLIPS):
             return ONE_FLIP_GUARD
+        if mid in MEASURED_TOL:
+            return {**QUALITY_GUARD, "tol": MEASURED_TOL[mid]}
         # plain faithfulness rewards refusals (they make no claims); the
         # guardrail is faithfulness_attempted, over answered questions only
         if mid == "pipeline.faithfulness.avg_score":

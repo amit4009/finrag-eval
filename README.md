@@ -115,11 +115,27 @@ more answers is what raised correctness, numeric match and answer relevancy, and
 the judge more claims to find unsupported. Faithfulness is still worth watching: a version scored
 only on attempted answers would separate the two effects.
 
-**Noise check, Phase 2** ([`phase2_noise_rerun.json`](baselines/phase2_noise_rerun.json)): retrieval
-metrics moved by exactly 0, and judge metrics by up to 0.040. The **generator's numeric match
-moved by 1/7 on an identical pipeline**: `gpt-4o-mini` at temperature 0 is not deterministic,
-so judge-free does not mean noise-free. Only retrieval metrics are exactly repeatable. With 7
-numeric questions one answer is 0.14, so numeric-match deltas below 2/7 are noise at this size.
+**Noise and tolerances** (`python -m evals.noise`): five snapshots of identical pipelines
+(2 naive: [`phase2_naive`](baselines/phase2_naive.json), [`phase2_noise_rerun`](baselines/phase2_noise_rerun.json);
+3 E1: [`e1_metadata_filters`](baselines/e1_metadata_filters.json), [`baseline`](baselines/baseline.json),
+[`e1_noise_rerun`](baselines/e1_noise_rerun.json)) give each metric's run-to-run noise. Three findings:
+
+- **Retrieval metrics are exactly repeatable** (σ = 0), so any change is real and tolerance is 0.
+- **The generator isn't deterministic**: `gpt-4o-mini` at temperature 0 changed one numeric answer
+  in 7 between identical runs. Judge-free does not mean noise-free.
+- **Judge noise differs about 3x by metric**: σ ≈ 0.007 for correctness, 0.024 for faithfulness.
+  The single 0.05 tolerance inherited from the tutorial was too loose for some metrics and too
+  tight for others, and gave false REVIEWs on unchanged pipelines. Each judge metric now has its
+  own tolerance, 2.77σ (the 95% band for a difference of two noisy runs), with a floor of 0.03.
+
+A first estimate from a single pair of runs said 0.05 was enough, and the next pair disproved it.
+The current tolerances come from 3 degrees of freedom (1 for the two newest metrics), so they are
+estimates. They were also fitted to the runs they now pass, and get re-measured as runs accumulate.
+
+**Refusals and faithfulness:** a refusal makes no claims, so it scores 1.0 on faithfulness, and
+plain faithfulness *falls* when better retrieval lets the model answer more. That is the REVIEW
+that E1 triggered. The pipeline eval now also reports `answer_rate` and
+`faithfulness_attempted` (answered questions only), and gates on those.
 
 **Judge failures:** `gpt-4o-mini` as judge sometimes loops to its 16k output-token limit on a
 structured step. Those calls are recorded as `n_errors` and left out of the averages, not

@@ -20,9 +20,15 @@ def test_retrieval_metrics_have_zero_tolerance():
 
 
 def test_generator_flip_metrics_allow_one_question():
-    for mid in ["generator.numeric_match.avg_score", "application.numeric_match.avg_score",
-                "pipeline.answer_rate.avg_score"]:
+    for mid in ["generator.numeric_match.avg_score", "application.numeric_match.avg_score"]:
         assert rule_for(mid)["questions"] == 1, mid
+
+
+def test_judge_tolerances_are_per_metric():
+    # correctness is ~3x less noisy than faithfulness: one shared 0.05 was wrong both ways
+    assert rule_for("application.correctness_[geval].avg_score")["tol"] == 0.03
+    assert rule_for("generator.faithfulness.avg_score")["tol"] == 0.07
+    assert rule_for("some.unmeasured_metric.avg_score")["tol"] == 0.05   # default
 
 
 def test_plain_faithfulness_is_info_attempted_is_guarded():
@@ -53,9 +59,16 @@ def test_one_lost_retrieval_hit_regresses():
                    ) == "REVIEW"
 
 
-def test_judge_noise_under_005_is_flat():
-    assert verdict({"generator__answer_relevancy__avg_score": 0.770},
-                   {"generator__answer_relevancy__avg_score": 0.730}) == "PASS"
+def test_judge_noise_within_measured_band_is_flat():
+    # E1 noise rerun: generator faithfulness 0.905 -> 0.849 on an identical pipeline
+    assert verdict({"generator__faithfulness__avg_score": 0.9047},
+                   {"generator__faithfulness__avg_score": 0.8488}) == "PASS"
+
+
+def test_correctness_drop_beyond_its_noise_regresses():
+    # 0.04 would have passed the old shared 0.05; correctness noise is ~0.007
+    assert verdict({"application__correctness_[geval]__avg_score": 0.39},
+                   {"application__correctness_[geval]__avg_score": 0.35}) == "REVIEW"
 
 
 def test_plain_faithfulness_drop_no_longer_triggers_review():
