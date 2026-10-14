@@ -11,7 +11,7 @@ Every design choice is tested with a regression-gated eval suite (quality, safet
 |---|---|---|
 | 0 | Project setup, data fetch | ✅ |
 | 1 | One company (PepsiCo): naive baseline | ✅ |
-| 2 | 8 companies: retrieval experiments | ⏳ E1 ✅, E2 ❌, E3 ❌ |
+| 2 | 8 companies: retrieval experiments | ⏳ E1 ✅, E2 ❌, E3 ❌, E4 ✅ |
 | 3 | All 40 companies: full system, final test-set numbers | |
 | 4 | Production: API, UI, tracing, online evals, CI | |
 | 5 | Write-up | |
@@ -194,3 +194,36 @@ are out of its domain.
 **E2 and E3 share a root cause:** both judge text by its words, and both fail on tables.
 PyMuPDF's plain text extraction flattens a table into a column of loose labels and numbers, so a
 table chunk barely reads as text. That points to E4 (table-aware parsing) as the next experiment.
+
+### E4: table-aware parsing (row reconstruction). Accepted.
+
+PyMuPDF's plain text puts every table number on its own line, cut off from its row label.
+E4 rebuilds each visual line from word positions and marks wide gaps as ` | `, so a row stays
+whole: `Purchases of property, plant and equipment (PP&E) | (1,577) | (1,373) | (1,420)`.
+Prose is unaffected. It takes about 3 ms per page and needs no new dependency. PyMuPDF's own
+`find_tables()` was tried first: the `lines` strategy shattered unruled statements into
+fragments, and `text` split words across cells. Snapshot: [`e4_rows_parser.json`](baselines/e4_rows_parser.json).
+
+| Metric | E1 | E4 | |
+|---|---|---|---|
+| **correctness** | 0.385 | **0.434** | improved, about 7σ of measured noise |
+| MRR | 0.351 | 0.383 | improved |
+| hit@5 | 0.596 | 0.596 | same (3 gained, 3 lost) |
+| doc hit@5 | 0.936 | 0.894 | regressed: 2 filings, 1 a labelling artifact |
+| contextual recall | 0.860 | 0.777 | regressed |
+| numeric match | 3/7 | 3/7 | same |
+
+**Verdict: REVIEW, accepted.** Correctness, the end-to-end metric, improved well beyond noise,
+and page-level retrieval held steady. Of the two lost filings:
+
+- **AMD** is not a real miss. `AMD_2022_annualreport` is the 10-K repackaged: the gold 10-K page
+  matches annual-report page 8 at 95% similarity, and E4 retrieved that page. FinanceBench
+  labels only the 10-K. Counting known duplicate documents as equivalent would fix the metric, but
+  that change belongs in its own commit, applied to every snapshot, not to one pending verdict.
+- **J&J** is real: the Q4 earnings release outranked the 10-K and lacks the inventory figures.
+
+**Cost:** row parsing makes earnings releases (almost all tables) more searchable, and they now
+sometimes outrank the 10-K for full-year questions. Hence the contextual-recall drop, and a
+candidate follow-up: prefer 10-Ks for full-year questions.
+
+E4 is now [`baseline.json`](baselines/baseline.json).
