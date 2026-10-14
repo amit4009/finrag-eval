@@ -27,7 +27,7 @@ CHUNK_OVERLAP = 150
 EMBEDDING_MODEL = "text-embedding-3-large"
 
 # retrieval
-RETRIEVER = "filtered"        # "vector" (naive) | "filtered" (E1: company + year filters)
+RETRIEVER = "hybrid"          # "vector" (naive) | "filtered" (E1: company + year filters)
                               # | "hybrid" (E2: E1 + BM25, fused with RRF)
 TOP_K = 5
 HYBRID_FETCH_K = 20           # E2: candidates from EACH of vector and BM25 before fusion
