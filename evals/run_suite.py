@@ -2,7 +2,7 @@
 """
 run_suite.py -- the orchestrator.
 
-Runs the FULL eval suite (quality + safety + operational) against ONE pipeline,
+Runs the eval suite against ONE pipeline,
 flattens every metric into a dotted id, stamps run metadata, and writes a
 snapshot JSON. That snapshot is the atomic unit regression testing compares.
 
@@ -24,22 +24,21 @@ import json
 import os
 import subprocess
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from dotenv import load_dotenv
 
-from src.rag_pipeline import RagPipeline
-from src.reranker import RerankingRetriever
-
+# Phase 1 runs the quality evals. The safety + operational suites are ported
+# from the tutorial in Phase 3 (finance-specific scope/leakage goldens).
 from evals import (
-    eval_retriever,
+    eval_application,
     eval_generator,
     eval_rag_pipeline,
-    eval_application,
-    eval_safety,
-    eval_ops,
+    eval_retriever,
 )
 from evals.metric_registry import rule_for
+from src import config
+from src.rag_pipeline import RagPipeline
 
 load_dotenv()
 
@@ -104,12 +103,11 @@ def _prompt_hash():
 
 def build_metadata(label):
     return {
-        "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "git_sha": _git_sha(),
         "prompt_hash": _prompt_hash(),
         "label": label,          # human note: what change this snapshot represents
-        # TODO: once you have a central config, stamp model / top_k / embedding here
-        #       so the baseline records exactly what pipeline it measured.
+        "config": config.as_dict(),   # exactly which pipeline these numbers measured
     }
 
 
@@ -126,39 +124,28 @@ def run_suite(label="", quiet=False, full=False):
     source of truth: the same rules that decide the verdict decide what we
     persist.
     """
-    verbose = not quiet
     t_start = time.perf_counter()
 
     # --- build ONCE, inject everywhere ---
     print("Building pipeline (once)...")
     rag = RagPipeline()
-    # The retriever eval should measure the SAME retriever the pipeline uses, not
-    # a fresh copy. Fall back to constructing one only if the pipeline doesn't
-    # expose it.
-    retriever = getattr(rag, "retriever", None) or RerankingRetriever()
+    # The retriever eval measures the SAME retriever the pipeline uses, not a copy.
+    retriever = rag.retriever
 
     metrics = {}
 
     # --- QUALITY (component -> pipeline -> application) ---
-    print("\n[1/6] retriever eval...")
+    print("\n[1/4] retriever eval...")
     metrics.update(flatten_nested("retriever", eval_retriever.run(retriever)))
 
-    print("\n[2/6] generator eval...")            # no pipeline: tests generate() on golden context
+    print("\n[2/4] generator eval...")            # no pipeline: tests generate() on golden context
     metrics.update(flatten_nested("generator", eval_generator.run()))
 
-    print("\n[3/6] pipeline (triad) eval...")
+    print("\n[3/4] pipeline (triad) eval...")
     metrics.update(flatten_nested("pipeline", eval_rag_pipeline.run(rag)))
 
-    print("\n[4/6] application quality eval...")
+    print("\n[4/4] application quality eval...")
     metrics.update(flatten_nested("application", eval_application.run(rag)))
-
-    # --- SAFETY (hard gates) ---
-    print("\n[5/6] safety evals...")
-    metrics.update(prefix_flat("safety", eval_safety.run_safety(rag, verbose=verbose)))
-
-    # --- OPERATIONAL ---
-    print("\n[6/6] operational evals...")
-    metrics.update(prefix_flat("ops", eval_ops.run_ops(rag, verbose=verbose)))
 
     elapsed = time.perf_counter() - t_start
 

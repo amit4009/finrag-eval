@@ -79,16 +79,21 @@ def company_key(pdf_name):
     return KEY_ALIASES.get(key, key)
 
 
-# 3. SELECT ---- the PDFs a phase asks for
-def pdfs_for_phase(phase):
+# 3. SELECT ---- the companies, then the PDFs, a phase asks for
+def company_keys_for_phase(phase):
+    """Set of company keys in the phase, or None for "all"."""
     config = yaml.safe_load(CORPUS_CONFIG.read_text())
     if phase not in config:
         raise SystemExit(f"unknown phase {phase!r}; defined: {list(config)}")
     wanted = config[phase]
+    return None if wanted == "all" else set(wanted)
+
+
+def pdfs_for_phase(phase):
+    wanted = company_keys_for_phase(phase)
     all_pdfs = list_all_pdfs()
-    if wanted == "all":
+    if wanted is None:
         return all_pdfs
-    wanted = set(wanted)
     selected = [p for p in all_pdfs if company_key(p) in wanted]
     missing = wanted - {company_key(p) for p in selected}
     if missing:

@@ -22,7 +22,18 @@ Every design choice is tested with a regression-gated eval suite (quality, safet
 uv sync                                     # install dependencies (Python 3.12)
 cp .env.example .env                        # add your OPENAI_API_KEY
 uv run python -m src.fetch_data phase1      # download the questions + PepsiCo PDFs
+uv run python -m goldens.build_goldens      # FinanceBench jsonl -> goldens/financebench.json
+uv run python -m src.retriever              # parse, chunk, embed once (~$0.40 for phase1)
+uv run python -m src.rag_pipeline           # ask one question end to end
+
+uv run python -m evals.run_suite --baseline --label "..."   # snapshot -> baselines/baseline.json
+uv run python -m evals.run_suite --label "my change"        # snapshot -> baselines/candidate.json
+uv run python -m evals.compare                              # PASS / REVIEW / FAIL
+uv run pytest                                               # unit tests (numeric matcher)
 ```
+
+Settings for every experiment (phase, chunking, embedding model, top-k, models) live in
+[`src/config.py`](src/config.py) and are stamped into each snapshot. `FINRAG_PHASE=phase2` switches corpus.
 
 ## Data
 

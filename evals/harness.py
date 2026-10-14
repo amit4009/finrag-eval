@@ -23,10 +23,35 @@ flag, so it stays correct whether higher or lower score is "good".
 
 import json
 
+FINANCEBENCH_GOLDENS = "goldens/financebench.json"
+
 
 def load_goldens(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_phase_goldens(phase=None):
+    """The FinanceBench goldens for the companies indexed in this phase."""
+    from src import config
+    from src.fetch_data import company_keys_for_phase
+
+    companies = company_keys_for_phase(phase or config.PHASE)
+    goldens = load_goldens(FINANCEBENCH_GOLDENS)
+    return [g for g in goldens if companies is None or g["company"] in companies]
+
+
+def summarize_scores(name, scores, threshold):
+    """Per-metric summary for metrics we compute ourselves (no DeepEval result),
+    in the same shape summarize_by_metric returns, so run_suite flattens both alike."""
+    n = len(scores)
+    return {name: {
+        "n": n,
+        "pass_rate": (100 * sum(s >= threshold for s in scores) / n) if n else 0.0,
+        "avg_score": (sum(scores) / n) if n else float("nan"),
+        "min_score": min(scores) if n else float("nan"),
+        "max_score": max(scores) if n else float("nan"),
+    }}
 
 
 def summarize_by_metric(result):
