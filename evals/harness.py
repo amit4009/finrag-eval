@@ -38,14 +38,16 @@ def load_goldens(path):
         return json.load(f)
 
 
-def load_phase_goldens(phase=None):
-    """The FinanceBench goldens for the companies indexed in this phase."""
+def load_phase_goldens(phase=None, split=None):
+    """The FinanceBench goldens for this phase's companies, in this split."""
     from src import config
     from src.fetch_data import company_keys_for_phase
 
     companies = company_keys_for_phase(phase or config.PHASE)
-    goldens = load_goldens(FINANCEBENCH_GOLDENS)
-    return [g for g in goldens if companies is None or g["company"] in companies]
+    split = split or config.SPLIT
+    return [g for g in load_goldens(FINANCEBENCH_GOLDENS)
+            if (companies is None or g["company"] in companies)
+            and (split == "all" or g["split"] == split)]
 
 
 def summarize_scores(name, scores, threshold):

@@ -12,6 +12,12 @@ Two kinds of metric, side by side:
                   filing, wrong page"
   These are exact, free, and identical run to run.
 
+  E1 DIAGNOSTIC (filtered retriever only):
+    filter_accuracy  does the first filter tried (company + latest year read off
+                     the question) target the gold filing's company and year?
+                     Separates "extractor misread the question" from "right
+                     filing, still ranked wrong"
+
   JUDGE -- DeepEval Contextual Recall: does the retrieved text support every
   statement in the ideal answer? Catches the case where the fact appears on a
   page other than the labelled one.
@@ -32,6 +38,8 @@ from evals.harness import (
 )
 from src import config
 from src.generator import format_chunk
+from src.ingest import doc_metadata, load_doc_info
+from src.query_filters import extract_filters
 from src.retriever import build_retriever
 
 THRESHOLD = 0.7
@@ -50,11 +58,21 @@ def rank_scores(retrieved, expected):
     return float(rr > 0), rr, float(doc_hit)
 
 
+def filter_targets_gold(question, gold_doc_name, info):
+    gold = doc_metadata(gold_doc_name, info)
+    f = extract_filters(question)
+    return float(gold["company"] in f["companies"]
+                 and f["years"][:1] == [gold["doc_period"]])
+
+
 def run(retriever):
     goldens = load_phase_goldens()
     k = config.TOP_K
 
-    hits, rrs, doc_hits, test_cases = [], [], [], []
+    use_filters = config.RETRIEVER == "filtered"
+    info = load_doc_info()
+
+    hits, rrs, doc_hits, filter_ok, test_cases = [], [], [], [], []
     for g in goldens:
         retrieved = retriever.invoke(g["question"])
 
@@ -62,6 +80,8 @@ def run(retriever):
         hits.append(hit)
         rrs.append(rr)
         doc_hits.append(doc_hit)
+        if use_filters:
+            filter_ok.append(filter_targets_gold(g["question"], g["doc_name"], info))
 
         test_cases.append(LLMTestCase(
             input=g["question"],
@@ -71,7 +91,8 @@ def run(retriever):
             actual_output="(generator not evaluated in this run)",
         ))
 
-    result = evaluate(cache_config=NO_CACHE,
+    result = evaluate(
+        cache_config=NO_CACHE,
         test_cases=test_cases,
         metrics=[ContextualRecallMetric(threshold=THRESHOLD, model=config.JUDGE_MODEL,
                                         include_reason=True)],
@@ -83,6 +104,8 @@ def run(retriever):
     summary.update(summarize_scores(f"hit_at_{k}", hits, 1.0))
     summary.update(summarize_scores("mrr", rrs, 1.0))
     summary.update(summarize_scores(f"doc_hit_at_{k}", doc_hits, 1.0))
+    if use_filters:
+        summary.update(summarize_scores("filter_accuracy", filter_ok, 1.0))
     return summary
 
 

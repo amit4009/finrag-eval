@@ -8,6 +8,7 @@ A snapshot that doesn't record what it measured can't be compared honestly.
 The phase can be overridden per run without editing code:
 
     FINRAG_PHASE=phase2 uv run python -m evals.run_suite
+    FINRAG_SPLIT=test   ...   (the held-out set: run ONCE, at the very end)
 """
 
 import os
@@ -17,7 +18,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # which corpus (config/corpus.yaml) to index and which questions to score
-PHASE = os.getenv("FINRAG_PHASE", "phase1")
+PHASE = os.getenv("FINRAG_PHASE", "phase2")
+SPLIT = os.getenv("FINRAG_SPLIT", "dev")      # "dev", "test" or "all"
 
 # ingestion
 CHUNK_SIZE = 1000
@@ -25,7 +27,7 @@ CHUNK_OVERLAP = 150
 EMBEDDING_MODEL = "text-embedding-3-large"
 
 # retrieval
-RETRIEVER = "vector"          # Phase 1 naive baseline; E2 adds "hybrid", E3 the reranker
+RETRIEVER = "vector"          # "vector" (naive baseline) | "filtered" (E1: company + year filters)
 TOP_K = 5
 
 # generation + judging (one judge model everywhere, unlike the tutorial)
@@ -47,6 +49,7 @@ def as_dict():
     """What run_suite stamps into each snapshot's metadata."""
     return {
         "phase": PHASE,
+        "split": SPLIT,
         "chunk_size": CHUNK_SIZE,
         "chunk_overlap": CHUNK_OVERLAP,
         "embedding_model": EMBEDDING_MODEL,

@@ -49,7 +49,7 @@ evaluation**. They are never indexed or placed in the prompt.
 ### Phase 1: naive baseline (PepsiCo, 13 filings, 12,677 chunks, 11 questions)
 
 Vector search top-5, PyMuPDF, 1000/150 chunks, `text-embedding-3-large`, `gpt-4o-mini`.
-Snapshot: [`baselines/baseline.json`](baselines/baseline.json).
+Snapshot: [`baselines/phase1_baseline.json`](baselines/phase1_baseline.json).
 
 | Layer | Metric | Score | Judge? |
 |---|---|---|---|
@@ -71,7 +71,7 @@ gets none right through the pipeline, so for those questions the loss is entirel
 With several years of near-identical filings, nearest-neighbour search can't tell them apart.
 The 8-K and earnings-release questions, whose documents are one of a kind, hit at rank 1 or 2.
 When retrieval misses, the generator abstains rather than inventing a number. Next experiment:
-**E1, metadata filters on company, fiscal year and filing type.**
+**E1, metadata filters on company and fiscal year.**
 
 **Noise check:** the identical pipeline was run twice ([`phase1_noise_rerun.json`](baselines/phase1_noise_rerun.json)).
 Judge-free metrics moved by exactly 0. Judge metrics moved by up to 0.052, so `compare` returned

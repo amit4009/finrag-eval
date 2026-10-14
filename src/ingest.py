@@ -21,6 +21,7 @@ the chunking (E5) re-chunks in seconds instead of re-parsing hundreds of PDFs.
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import pymupdf
@@ -45,15 +46,22 @@ def load_doc_info():
 
 
 def doc_metadata(doc_name, info):
-    # a few PDFs have no catalog row: fall back to parsing the filename,
-    # e.g. "AMCOR_2023Q2_10Q" -> period "2023Q2", type "10q"
+    # a few PDFs have no catalog row: fall back to parsing the filename.
+    # Find the period token rather than assuming its position, since company
+    # names can contain "_" ("JOHNSON_JOHNSON_2022_10K"); the token after it is
+    # the type: "AMCOR_2023Q2_10Q" -> period "2023", type "10q"
     row = info.get(doc_name)
-    parts = doc_name.split("_")
+    if row:
+        doc_type, period = str(row["doc_type"]), str(row["doc_period"])
+    else:
+        parts = doc_name.split("_")
+        i = next(i for i, p in enumerate(parts) if re.match(r"(19|20)\d\d", p))
+        doc_type, period = parts[i + 1].lower(), parts[i][:4]
     return {
         "doc_name": doc_name,
         "company": company_key(doc_name),
-        "doc_type": str(row["doc_type"]) if row else parts[2].lower(),
-        "doc_period": str(row["doc_period"]) if row else parts[1],
+        "doc_type": doc_type,
+        "doc_period": period,
     }
 
 
@@ -74,7 +82,10 @@ def load_pages(phase=None):
     phase = phase or config.PHASE
     info = load_doc_info()
     docs, seen = [], {}
-    for name in pdfs_for_phase(phase):
+    # catalog names first, so when two files are byte-identical we keep the
+    # name the questions cite (AMCOR_2022_8K_dated-2022-07-01, not ..._2022-07-01)
+    names = sorted(pdfs_for_phase(phase), key=lambda n: Path(n).stem not in info)
+    for name in names:
         path, _ = fetch(f"pdfs/{name}")         # no-op if already cached
 
         # the source repo has a few byte-identical PDFs under different names;

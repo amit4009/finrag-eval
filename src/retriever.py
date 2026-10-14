@@ -15,6 +15,7 @@ from langchain_openai import OpenAIEmbeddings
 
 from src import config
 from src.ingest import load_chunks
+from src.query_filters import chroma_where, extract_filters
 
 BATCH = 200   # chunks per embedding request (~50k tokens, well under the API cap)
 
@@ -51,9 +52,38 @@ class VectorRetriever:
         return self.store.similarity_search(query, k=self.top_k)
 
 
+# E1: metadata filters. Narrow the search to the company + fiscal year named in
+# the question, widening step by step if a filter matches nothing:
+#   company + latest year -> company + any year named -> company -> no filter
+class FilteredRetriever:
+    def __init__(self, store, top_k):
+        self.store = store
+        self.top_k = top_k
+        self.last_where = None     # the filter that produced the last results
+
+    def attempts(self, query):
+        f = extract_filters(query)
+        companies, years = f["companies"], f["years"]
+        wheres = [chroma_where(companies, years[:1]), chroma_where(companies, years),
+                  chroma_where(companies, []), None]
+        return [w for i, w in enumerate(wheres) if w not in wheres[:i]]   # dedupe, keep order
+
+    def invoke(self, query):
+        for where in self.attempts(query):
+            docs = self.store.similarity_search(query, k=self.top_k, filter=where)
+            if docs:
+                self.last_where = where
+                return docs
+        self.last_where = None
+        return []
+
+
+RETRIEVERS = {"vector": VectorRetriever, "filtered": FilteredRetriever}
+
+
 def build_retriever():
-    if config.RETRIEVER == "vector":
-        return VectorRetriever(load_store(), config.TOP_K)
+    if config.RETRIEVER in RETRIEVERS:
+        return RETRIEVERS[config.RETRIEVER](load_store(), config.TOP_K)
     raise ValueError(f"unknown retriever {config.RETRIEVER!r}")
 
 
