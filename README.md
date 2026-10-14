@@ -330,7 +330,7 @@ question tagged with a wrong company.
 | answer rate | 0.68 | 0.73 |
 | faithfulness (answered) | 0.77 | 0.83 |
 
-Snapshots: [`baseline.json`](baselines/baseline.json), [`phase3_noise_rerun.json`](baselines/phase3_noise_rerun.json)
+Snapshots: [`phase3_e5_baseline.json`](baselines/phase3_e5_baseline.json), [`phase3_noise_rerun.json`](baselines/phase3_noise_rerun.json)
 (the Phase 2 E5 baseline is kept as [`phase2_e5_baseline.json`](baselines/phase2_e5_baseline.json)).
 
 - **Corpus growth costs nothing.** The 47 Phase 2 questions score identically against 53,588
@@ -409,3 +409,29 @@ expert answer, FinanceBench's justification and the model's answer. Labels:
 - **Labeling rule, made consistent:** judge the *stated* answer, the one an analyst reads. One
   label was changed from Y to N for consistency with two others, and the change is noted in the
   sheet.
+
+### E6: work first, state the final answer last. Accepted (PASS).
+
+Prompted by the judge-agreement finding: *"Lead with the direct answer in the first sentence"*
+made the model commit to a number before doing the arithmetic. E6 asks it to work through the
+figures first and end with `Final answer: …`, which must agree with the working. No other prompt
+change. Snapshot: [`e6_answer_last.json`](baselines/e6_answer_last.json).
+
+| Metric | Phase 3 baseline (E5) | **E6** | |
+|---|---|---|---|
+| **correctness** | 0.499 | **0.575** | +0.076, about 12σ |
+| **answer rate** | 0.73 | **0.81** | 8 more questions answered instead of declined |
+| answer relevancy (pipeline / generator) | 0.70 / 0.74 | **0.83 / 0.84** | improved |
+| numeric match | 28/35 | 27/35 | within noise |
+| faithfulness, retrieval | | | unchanged |
+
+The three contradiction cases from labeling now end correctly: Kraft Heinz **6.24** (expert 6.25;
+16,830 / 2,694 = 6.247), Best Buy **2.8%**, Amazon DPO **93.64** (expert 93.86).
+
+**Numeric match can't see this fix**, because its leniency masked the bug in the first place: it
+credited the old answers for the right number buried in their working. The judge reads the stated
+answer, and correctness rose sharply. A stricter matcher that reads the `Final answer:` line is
+the next eval fix. Asking for the working first also made the model **decline less**: committing
+to an answer up front made it give up more often.
+
+E6 is now [`baseline.json`](baselines/baseline.json).
