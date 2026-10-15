@@ -12,7 +12,7 @@ Every design choice is tested with a regression-gated eval suite (quality, safet
 | 0 | Project setup, data fetch | ✅ |
 | 1 | One company (PepsiCo): naive baseline | ✅ |
 | 2 | 8 companies: retrieval experiments | ✅ E1 ✅, E2 ❌, E3 ❌, E4 ✅, E5 ✅ |
-| 3 | All 40 companies: full system, final test-set numbers | |
+| 3 | All 40 companies: full system, final test-set numbers | 🔄 E6 ✅, E7 ✅ |
 | 4 | Production: API, UI, tracing, online evals, CI | |
 | 5 | Write-up | |
 
@@ -454,4 +454,40 @@ answer, and correctness rose sharply. A stricter matcher that reads the `Final a
 the next eval fix. Asking for the working first also made the model **decline less**: committing
 to an answer up front made it give up more often.
 
-E6 is now [`baseline.json`](baselines/baseline.json).
+E6 was promoted to `baseline.json`; it is kept as [`phase3_e6_baseline.json`](baselines/phase3_e6_baseline.json).
+
+### E7: an LLM reranks the filtered pages. Accepted (PASS).
+
+E3's MiniLM cross-encoder failed because it preferred prose that echoed the question over the
+tables holding the answers. E7 retries reranking on whole, properly parsed pages with
+`gpt-4o-mini` as the reranker: inside E1's filter, take the 20 nearest pages, show the model each
+page's label and first 2,000 characters, and keep its 5 picks, best first
+([`src/llm_reranker.py`](src/llm_reranker.py)). If the call fails, the vector order is kept.
+Snapshot: [`e7_llm_rerank.json`](baselines/e7_llm_rerank.json).
+
+| Metric | E6 | **E7** | |
+|---|---|---|---|
+| hit@5 | 0.667 | **0.762** | +10 questions |
+| MRR | 0.451 | **0.635** | the gold page moves near the top |
+| contextual recall | 0.680 | **0.760** | |
+| **correctness** | 0.560 | **0.665** | +0.105 |
+| **numeric match (stated answer)** | 28/35 | **32/35** | |
+| answer rate | 0.81 | **0.89** | |
+| faithfulness (answered questions) | 0.800 | **0.855** | |
+
+The E6 column is the E6 re-run scored with the strict numeric matcher, so it differs slightly from
+the E6 table above. Generator-only metrics were flat, as expected: they don't use retrieval.
+
+**Costs.** One extra `gpt-4o-mini` call per question (about $0.002, +0.7–0.9 s); the full suite
+went from about 1,450 s to 1,740 s. No rerank call failed in either run.
+
+**Retrieval is no longer exactly repeatable.** An identical re-run
+([`e7_noise_rerun.json`](baselines/e7_noise_rerun.json)) changed hit@5 on 1 of 105 questions and
+MRR by 0.016. The registry's zero tolerance for retrieval metrics assumed a deterministic
+retriever, so that rerun alone shows REVIEW. Every answer metric stayed within its measured
+tolerance, and E7's retrieval gains are about 10x this variation. Calibrating a retrieval
+tolerance for the LLM reranker needs more re-runs; until then, retrieval REVIEWs under E7 are
+read against this pair.
+
+E7 is now [`baseline.json`](baselines/baseline.json); E6 is kept as
+[`phase3_e6_baseline.json`](baselines/phase3_e6_baseline.json).
